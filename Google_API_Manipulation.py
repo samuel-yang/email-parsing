@@ -595,9 +595,11 @@ def find_source_from_email(email_string):
         source, the name of the source.
     """    
     source_exists = False    
+
+    if not os.path.isfile('Aggregator Source Sheet.xlsx'):
+        export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
     
     for i in range(1):  
-        source_exists = False
         book = xlrd.open_workbook('Aggregator Source Sheet.xlsx')
         sheet = book.sheet_by_index(0)
         rownum = sheet.nrows
@@ -608,8 +610,9 @@ def find_source_from_email(email_string):
                 source = str(sheet.cell(x,1).value).encode("utf-8")
                 source_exists = True
                 return source
-    if source_exists == False:
-        export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
+
+        if source_exists == False:
+            export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
 
 def convert_date(date):
     '''Returns a date-time object.
