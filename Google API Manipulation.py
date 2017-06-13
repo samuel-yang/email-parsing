@@ -625,9 +625,3 @@ def convert_date(date):
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
-    
-filenames = get_filenames_in_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
-attachlist = get_email_attachment_list(filenames)
-
-print(filenames)
-print(attachlist)
