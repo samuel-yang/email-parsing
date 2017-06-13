@@ -486,8 +486,7 @@ def get_email_date(ind):
         if dict_val['name'] == 'Date':
             date = dict_val['value']
             
-    #date = convert_date(date.encode('utf-8'))
-    print(date)
+    date = convert_date(date.encode('utf-8'))
     return date
 
 def get_email_sender(ind):
@@ -591,18 +590,22 @@ def find_source_from_email(email_string):
     Returns:
         source, the name of the source.
     """    
-    for i in range(1):    
+    source_exists = False    
+    
+    for i in range(1):  
+        source_exists = False
         book = xlrd.open_workbook('Aggregator Source Sheet.xlsx')
         sheet = book.sheet_by_index(0)
         rownum = sheet.nrows
         colnum = sheet.ncols
     
-        for x in range(rownum):
-            if email_string.lower() == str(sheet.cell(x,0).value).encode("utf-8"):
+        for x in range(rownum):          
+            if email_string.lower().encode("utf-8") == str(sheet.cell(x,0).value).encode("utf-8"):
                 source = str(sheet.cell(x,1).value).encode("utf-8")
+                source_exists = True
                 return source
-    
-    export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
+    if source_exists == False:
+        export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
 
 def convert_date(date):
     '''Returns a date-time object.
@@ -617,14 +620,13 @@ def convert_date(date):
     form = r"[0-9]{4}"
     find = re.findall(form, date)[0]
     start=0
-    if "," in string:
-        start=string.index(",")+1
-    end=string.index(find)
-    string=string[start:end+len(find)].strip()
-    format1="%d %b %Y"
-    date_obj=datetime.datetime.strptime(string, format1)
+    if "," in date:
+        start = date.index(",")+1
+    end = date.index(find)
+    date = date[start:end+len(find)].strip()
+    date_format = "%d %b %Y"
+    date_obj = datetime.datetime.strptime(date, date_format)
     return date_obj
-
 
 def main():
     drive_service = initialize_drive_service()
