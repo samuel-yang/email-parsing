@@ -190,7 +190,7 @@ class convert():
         book = xlwt.Workbook()
         sheet = book.add_sheet("Sheet 1")
 
-        for rowi, row in enumerate(g):
+        for rowi, row in enumerate(read):
             for coli, value in enumerate(row):
                 sheet.write(rowi,coli,value)
 
@@ -201,6 +201,9 @@ class convert():
         file.close()
         os.remove(filename)
         return filename1    
+
+
+
 
     """ EXCEL_TO_CSV takes in a string argument of the filename, and returns
         string with filename of converted document, removes original document"""
@@ -217,7 +220,7 @@ class convert():
             write.writerow(sheet.row_values(row))
 
         csvfile.close()
-        os.remove(filename)
+        # os.remove(filename)
         return filename1
 
     """ EXCEL_TSV_TO_CSV takes in a string argument of the filename, and returns
