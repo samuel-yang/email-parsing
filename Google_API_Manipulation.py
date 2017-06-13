@@ -613,14 +613,18 @@ def convert_date(date):
     Returns:
         date_obj, the date-time object.    
     '''
-    #Reg-ex for 4 digit numbers 
+    #Reg-ex for 4 digit numbers
     form = r"[0-9]{4}"
     find = re.findall(form, date)[0]
-    ind = date.index(find)
-    date = date[:ind+len(find)]
-    format1 = "%a, %d %b %Y"
-    date_obj = datetime.datetime.strptime(date, format1)
+    start=0
+    if "," in string:
+        start=string.index(",")+1
+    end=string.index(find)
+    string=string[start:end+len(find)].strip()
+    format1="%d %b %Y"
+    date_obj=datetime.datetime.strptime(string, format1)
     return date_obj
+
 
 def main():
     drive_service = initialize_drive_service()
