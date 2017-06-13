@@ -140,7 +140,7 @@ class bst():
             provider[0] = hash(string)
             provider.append(0)
             self.insert(root, self.node(provider[0], provider))
-        # os.remove(filename)
+        os.remove(filename)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
     def to_database(self, root, templist):
@@ -260,22 +260,20 @@ class format():
                         {'MCC': ['MCC']},
                         {'MNC': ['MNC']},
                         {'MCCMNC': ['MCCMNC', 'Network code']},
-                        {'Rate': ['Rate', 'Price', 'New Price', 'New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS']})
-                        # {'CURR': ['USD', 'EUR' 'GBP', 'CNY', 'MXN']},
-                        # {'Source': ['Source']})
+                        ({'Rate': ['Rate', 'Price', 'New Price', 'New Price(Euro)', 'Price Euro', 'New Price EUR', 
+                            'New Price (EUR)', 'Price \nEUR/SMS', 'New Price (USD)', 'Rate - USD']}))
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
 
-    currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price']},
+    currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
                             {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS']})
 
     # """Support only exists for USD, EUR right now, need to define dictionary for others"""
     currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN']
 
-    rate_present = False
-
     """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
         correctly ordered.  takes in filename as string, returns new filename."""
+<<<<<<< HEAD
     def excel_format(self, filename, source):
         mccmnc_absent=True
         mcc_absent=True
@@ -283,8 +281,11 @@ class format():
         mnc_val=[0]
         mcc_val=[0]
         mccmnc_val=[0]
+=======
+    def excel_format(self, filename, source, sheetindex):
+>>>>>>> b2943b5e51cf1f15914d10c67301948d77909284
         book = xlrd.open_workbook(filename)
-        sheet = book.sheet_by_index(0)
+        sheet = book.sheet_by_index(sheetindex)
         new_book = xlwt.Workbook()
         sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True)
 
@@ -306,6 +307,8 @@ class format():
 
         rownum = sheet.nrows
         colnum = sheet.ncols
+
+        rate_present = False
 
         for row in range(rownum):
             for y in range(colnum):
@@ -348,7 +351,7 @@ class format():
                         sheet_wr.write(x-row,4,value)
                 # """Rate"""
                 elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
-                    print "Rate detected"
+                    rate_present = True
                     for x in range(len(currency_list)):
                         if sheet.cell(row,y).value in currency_dictionary[x][currency_list[x]]:
                             i = x
@@ -368,6 +371,7 @@ class format():
                 else:
                     pass
 
+<<<<<<< HEAD
                 
         """ Computing missing MNC, MCC or MCCMNC Values"""
         
@@ -396,6 +400,10 @@ class format():
                     ind3=value_mnc.index(".")
                     value_mnc=value_mnc[:ind3]
                 sheet_wr.write(i,3,value_mnc)
+=======
+        if not rate_present:
+            return -1
+>>>>>>> b2943b5e51cf1f15914d10c67301948d77909284
 
         index = filename.rfind('.')
         filename1 = filename[:index]

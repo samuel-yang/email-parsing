@@ -543,7 +543,7 @@ def get_email_attachment(ind):
     return file
 
 def get_email_attachment_list(drive_list):
-    """Gets a list of attachments of an email message from the Gmail inbox.
+    """Gets a list of attachments using a list of file names from Google Drive.
     
     Args:
         drive_list: list of file names from the Google Drive.
@@ -551,11 +551,17 @@ def get_email_attachment_list(drive_list):
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
+    gmail_service = initialize_gmail_service()
+    
+    results = gmail_service.users().messages().list(userId='me').execute()
+    messages = results['messages']
+    
     ind = 0
+    last_ind = (len(messages) - 1)
     file_attach = []
     attach_list = []
     loop_break = True
-    while(len(drive_list) > 0):
+    while(len(drive_list) > 0) or ind != last_ind:
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
@@ -569,14 +575,18 @@ def get_email_attachment_list(drive_list):
                 sublist.append(sender[0])
                 sublist.append(sender[1])
                 sublist.append(date)
+                attach_list.append(sublist)
                 if file_attach[i] == "":
                     del sublist
             else:
-                loop_break = False
-                break
-        if loop_break == False:
+                if ind == last_ind:
+                    break
+                #loop_break = False
+                #break
+        if ind == last_ind:
             break
-        attach_list.append(sublist)
+        #if loop_break == False:
+            #break
         ind = ind + 1
         
     return attach_list
@@ -595,9 +605,11 @@ def find_source_from_email(email_string):
         source, the name of the source.
     """    
     source_exists = False    
+
+    if not os.path.isfile('Aggregator Source Sheet.xlsx'):
+        export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
     
     for i in range(1):  
-        source_exists = False
         book = xlrd.open_workbook('Aggregator Source Sheet.xlsx')
         sheet = book.sheet_by_index(0)
         rownum = sheet.nrows
@@ -608,8 +620,9 @@ def find_source_from_email(email_string):
                 source = str(sheet.cell(x,1).value).encode("utf-8")
                 source_exists = True
                 return source
-    if source_exists == False:
-        export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
+
+        if source_exists == False:
+            export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
 
 def convert_date(date):
     '''Returns a date-time object.

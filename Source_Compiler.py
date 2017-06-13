@@ -12,39 +12,30 @@ sys.setdefaultencoding('utf-8')
 
 # """TESTING FILE"""
 # filename = 'Test C3ntro Telecom - C3ntro Telecom Price Change Notification for Hookmobile-20170602.xlsx'
-filename = 'Test Mitto AG - CoverageList_20170606_1000_hookmob1.xlsx'
-# filename = 'Test.xlsx'
+# filename = 'Test Mitto AG - CoverageList_20170606_1000_hookmob1.xlsx'
+filename = 'UPM_SMSR-1_HOOK MOBILE_USD_2017-06-12 FORMATTED.xls'
 
-# """ C3ntro """
-def c3ntro(filename, root, database):
-    source = 'c3ntro'
-    filename1 = format().excel_format(filename, source)
+# """Tata"""
+def tata(filename, root, database, source):
+    filename1 = format().excel_format(filename, source, 1)
+    if filename1 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'    
     bst().source_build(root, filename1)
     bst().write(root, database)
 
-def horisen(filename, root, database):
-    # """ BUILD SUPPORT FOR MCC MNC - separators and combiners
-    source = 'HORISEN'
-    filename1 = format().excel_format(filename, source)
-    #BUILD DOESNT WORK BECAUSE FREAKING ENCODINGS SUCK
-    # bst().source_build(root, filename1)
-    # # bst().write(root, database)
-
-def mitto(filename, root, database):
-    source = 'Mitto AG'
-    filename1 = format().excel_format(filename, source)
+# """General Use Case"""
+# support for C3ntro, Mitto, MMD
+def general(filename, root, database, source):
+    filename1 = format().excel_format(filename, source, 0)
+    if filename1 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'
     bst().source_build(root, filename1)
     bst().write(root, database)
+    # move_to_processed(filename)
 
-def sms_az(filename, root, database):
-    source = 'SMS A-Z'
-    filename1 = convert().excel_to_csv(filename)
-    filename2 = convert().csv_to_excel(filename1)
-    filename3 = format().excel_format(filename2, source)
-    bst().source_build(root, filename3)
-    # bst().write(root, database)
-
-
+# """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
     # """Defining dates for use in methods"""
     today = str(date.today())[-5:]
@@ -61,8 +52,13 @@ def main():
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
+
+    # company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    # filename = company_list.pop()
+    # print filename
     bst().database_build(database, header)
-    mitto(filename, header, database)
+    status = general(filename, header, database, 'UPM Telecom')
+    print status
 
 
 if __name__ == '__main__':
