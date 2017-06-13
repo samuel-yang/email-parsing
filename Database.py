@@ -14,7 +14,7 @@ import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
-from Google API Manipulation import *
+from Google_API_Manipulation import *
 from datetime import *
 
 reload(sys)
