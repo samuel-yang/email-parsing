@@ -543,7 +543,7 @@ def get_email_attachment(ind):
     return file
 
 def get_email_attachment_list(drive_list):
-    """Gets a list of attachments of an email message from the Gmail inbox.
+    """Gets a list of attachments using a list of file names from Google Drive.
     
     Args:
         drive_list: list of file names from the Google Drive.
@@ -551,11 +551,17 @@ def get_email_attachment_list(drive_list):
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
+    gmail_service = initialize_gmail_service()
+    
+    results = gmail_service.users().messages().list(userId='me').execute()
+    messages = results['messages']
+    
     ind = 0
+    last_ind = (len(messages) - 1)
     file_attach = []
     attach_list = []
     loop_break = True
-    while(len(drive_list) > 0):
+    while(len(drive_list) > 0) or ind != last_ind:
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
@@ -569,14 +575,18 @@ def get_email_attachment_list(drive_list):
                 sublist.append(sender[0])
                 sublist.append(sender[1])
                 sublist.append(date)
+                attach_list.append(sublist)
                 if file_attach[i] == "":
                     del sublist
             else:
-                loop_break = False
-                break
-        if loop_break == False:
+                if ind == last_ind:
+                    break
+                #loop_break = False
+                #break
+        if ind == last_ind:
             break
-        attach_list.append(sublist)
+        #if loop_break == False:
+            #break
         ind = ind + 1
         
     return attach_list
