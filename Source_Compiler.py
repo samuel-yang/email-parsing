@@ -4,7 +4,7 @@ from CurrencyConverter import *
 from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
-from Database import *
+from Database_Manipulation import *
 
 # global database, today, tomorrow
 reload(sys)
@@ -38,19 +38,24 @@ def sms_az(filename, root, database):
 
 
 def main():
-    database = 'Rates for 06-12.xls'
+    # """Defining dates for use in methods"""
     today = str(date.today())[-5:]
+    tomo = date.today() + timedelta(days = 1)
+    tomorrow = str(tomo)[-5:]
+    yester = date.today() - timedelta(days = 1)
+    yesterday = str(yester)[-5:]
+    database = 'Rates for ' + today + '.xls'
 
-    version = database[-9:]
-    version = version[:5]
-    if not version == today:
-        database = 'Rates for ' + today + '.xls'
+    if not os.path.isfile(database):
+        old_database = 'Rates for ' + yesterday + '.xls'
+        shutil.copy2(old_database, database)
+        print "new file made"
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
-    bst().database_build(database, header)
-    sms_az(filename, header, database)
-    bst().in_order_print(header)
+    # bst().database_build(database, header)
+    # sms_az(filename, header, database)
+    # bst().in_order_print(header)
 
 if __name__ == '__main__':
     main()
