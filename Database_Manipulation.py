@@ -273,7 +273,17 @@ class format():
 
     """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
         correctly ordered.  takes in filename as string, returns new filename."""
+<<<<<<< HEAD
+    def excel_format(self, filename, source):
+        mccmnc_absent=True
+        mcc_absent=True
+        mnc_absent=True
+        mnc_val=[0]
+        mcc_val=[0]
+        mccmnc_val=[0]
+=======
     def excel_format(self, filename, source, sheetindex):
+>>>>>>> b2943b5e51cf1f15914d10c67301948d77909284
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(sheetindex)
         new_book = xlwt.Workbook()
@@ -320,18 +330,24 @@ class format():
                         sheet_wr.write(x-row,1,value[1])
                 # """MCC"""
                 elif sheet.cell(row,y).value in column_dictionary[3][column_list[3]]:
+                    mcc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
+                        mcc_val.append(value)
                         sheet_wr.write(x-row,2,value)
                 # """MNC"""
                 elif sheet.cell(row,y).value in column_dictionary[4][column_list[4]]:
+                    mnc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
+                        mnc_val.append(value)
                         sheet_wr.write(x-row,3,value)
                 # """MCCMNC"""
                 elif sheet.cell(row,y).value in column_dictionary[5][column_list[5]]:
+                    mccmnc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
+                        mccmnc_val.append(value)
                         sheet_wr.write(x-row,4,value)
                 # """Rate"""
                 elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
@@ -358,8 +374,39 @@ class format():
                 else:
                     pass
 
+<<<<<<< HEAD
+                
+        """ Computing missing MNC, MCC or MCCMNC Values"""
+        
+        # """MCCMNC is absent"""
+        if mcc_absent== False and mnc_absent==False and mccmnc_absent==True:
+            for i in range(1,len(mcc_val)):
+                if "," not in str(mnc_val[i]) and "/" not in str(mnc_val[i]):
+                    ind1=str(mcc_val[i]).index(".")
+                    ind2=str(mnc_val[i]).index(".")
+                    val=str(mnc_val[i])[:ind2]
+                    if len(val)==1:
+                        val="0"+val
+                    value=str(mcc_val[i])[:ind1]+val                  
+                    sheet_wr.write(i,4,value)
+                else:
+                    value=""
+                    sheet_wr.write(i,4,value)
+                    
+        # """MNC and MNC individual columns are absent"""
+        if mccmnc_absent==False and mcc_absent== True and mnc_absent==True:
+            for i in range(1,len(mccmnc_val)):
+                value_mcc=str(mccmnc_val[i])[:3]
+                sheet_wr.write(i,2,value_mcc)
+                value_mnc=str(mccmnc_val[i])[3:]
+                if "." in value_mnc:
+                    ind3=value_mnc.index(".")
+                    value_mnc=value_mnc[:ind3]
+                sheet_wr.write(i,3,value_mnc)
+=======
         if not rate_present:
             return -1
+>>>>>>> b2943b5e51cf1f15914d10c67301948d77909284
 
         index = filename.rfind('.')
         filename1 = filename[:index]
