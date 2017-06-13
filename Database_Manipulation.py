@@ -51,15 +51,16 @@ class bst():
             i = i + 1
             string = ''
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
-            provider = [0, 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 0]
+            provider = [0]
             for j in range(colnum):
-                provider[j + 1] = str(sheet.cell(i,j).value).encode("utf-8")
+                provider.append(sheet.cell(i,j).value)
                 if j < 5:
                     string = string + str(sheet.cell(i,j).value).encode("utf-8")
                 else:
                     pass
 
             provider[0] = hash(string)
+            provider.append(0)
             if not provider[10] == today:
                 xfx = sheet.cell_xf_index(i, 7)
                 xf = book.xf_list[xfx]
@@ -128,19 +129,16 @@ class bst():
             i = i + 1
             string = ''
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
-            provider = [0, 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 'n/a', 0]
+            provider = [0]
             for j in range(colnum):
-                # temp = sheet.cell(i,j).value
-                # temp = "u'" + temp + "'"
-                # print temp
-                provider[j + 1] = str(sheet.cell(i,j).value).encode("utf-8")
+                provider.append(sheet.cell(i,j).value) 
                 if j < 5:
                     string = string + str(sheet.cell(i,j).value).encode("utf-8")
                 else:
                     pass
 
             provider[0] = hash(string)
-            # print "Row, Column, encoding - ", i, j, temp.decode("utf-8")
+            provider.append(0)
             self.insert(root, self.node(provider[0], provider))
         # os.remove(filename)
 
@@ -160,21 +158,25 @@ class bst():
         self.to_database(root, final_list)
         for x in range(len(final_list)):
             provider = final_list.pop(0)
-            print provider
+            # print len(final_list)
             for k in range(length):
                 if k == 7:
                     # price increased
                     if provider[11] == 1:
                         st = xlwt.easyxf('pattern: pattern solid, fore_color red;')
                         sheet.write(x,k,provider[k+1],st)
+                        # print "marker 1"
                     # price decreased
                     elif provider[11] == -1:
                         st = xlwt.easyxf('pattern: pattern solid, fore_color green;')
                         sheet.write(x,k,provider[k+1],st)
+                        # print "marker 2"
                     else:
                         sheet.write(x,k,provider[k+1])
+                        # print "marker 3"
                 else:
                     sheet.write(x,k,provider[k+1])
+                    # print "marker 4"
 
         book.save(filename)
         print "Successfully written"
@@ -308,7 +310,6 @@ class format():
                         sheet_wr.write(x-row,0,value)
                 # """Network"""        
                 elif sheet.cell(row,y).value in column_dictionary[1][column_list[1]]:
-
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         sheet_wr.write(x-row,1,value)
