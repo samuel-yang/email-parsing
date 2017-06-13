@@ -13,7 +13,18 @@ sys.setdefaultencoding('utf-8')
 # """TESTING FILE"""
 # filename = 'Test C3ntro Telecom - C3ntro Telecom Price Change Notification for Hookmobile-20170602.xlsx'
 # filename = 'Test Mitto AG - CoverageList_20170606_1000_hookmob1.xlsx'
-filename = 'UPM_SMSR-1_HOOK MOBILE_USD_2017-06-12 FORMATTED.xls'
+# filename = 'UPM_SMSR-1_HOOK MOBILE_USD_2017-06-12 FORMATTED.xls'
+# filename = 'Test.xls'
+
+# """Monty Mobile"""
+def monty(filename, root, database, source):
+    filename1 = convert().csv_to_excel(filename)
+    filename2 = format().excel_format(filename1, source, 0)
+    if filename2 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'    
+    bst().source_build(root, filename2) 
+    bst().write(root, database)   
 
 # """Tata"""
 def tata(filename, root, database, source):
@@ -25,7 +36,7 @@ def tata(filename, root, database, source):
     bst().write(root, database)
 
 # """General Use Case"""
-# support for C3ntro, Mitto, MMD
+# support for C3ntro, Mitto, MMD, UPM, Wavecell
 def general(filename, root, database, source):
     filename1 = format().excel_format(filename, source, 0)
     if filename1 == -1:
@@ -34,6 +45,8 @@ def general(filename, root, database, source):
     bst().source_build(root, filename1)
     bst().write(root, database)
     # move_to_processed(filename)
+
+
 
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
@@ -53,11 +66,14 @@ def main():
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
 
-    # company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
-    # filename = company_list.pop()
-    # print filename
+    company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    # temp_list = get_email_attachment_list(company_list)
+    # temp = temp_list.pop()
+    temp = company_list.pop()
+    # temp = filename
     bst().database_build(database, header)
-    status = general(filename, header, database, 'UPM Telecom')
+    status = monty(temp, header, database, 'Monty Mobilel')
+    # status = general(temp[0], header, database, temp[1])
     print status
 
 

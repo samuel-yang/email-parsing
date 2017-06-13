@@ -254,8 +254,8 @@ class convert():
 """Format class contains all formatting methods that will be used"""
 class format():
     global column_dictionary, column_list, currency_dictionary, currency_list, currency_rate
-    column_dictionary =({'Country': ['Country']},
-                        {'Network': ['Network']},
+    column_dictionary =({'Country': ['Country', 'CountryName']},
+                        {'Network': ['Network', 'OperatorName']},
                         {'Country/Network': ['Country/Operator', 'Region/Operator', 'Country/Network']},
                         {'MCC': ['MCC']},
                         {'MNC': ['MNC']},
@@ -341,7 +341,10 @@ class format():
                             i = x
                             break
                     for x in range(row+1, rownum):
-                        value = sheet.cell(x,y).value
+                        if sheet.cell(x,y).value == '-':
+                            value = 0
+                        else:
+                            value = sheet.cell(x,y).value
                         sheet_wr.write(x-row,5,value)
                         sheet_wr.write(x-row,6,currency_list[i])
                         # """ Converting currencies here"""
