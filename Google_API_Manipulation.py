@@ -209,6 +209,7 @@ def dl_folder(folder_id):
     folder_name = find_file_name(parent_id)
     page_token = None
     files_exist = False
+    company_list = []
     
     #Searches within folder for non-Google files with xls, xlsx, csv, or pdf extensions
     while True:
@@ -219,6 +220,7 @@ def dl_folder(folder_id):
             # Process change
             file_id = file.get('id')
             file_name = file.get('name').encode('utf-8')
+            company_list.append(file_name)
             #file_name_no_extension = (".").join(file.get('name').split(".")[:-1]).encode('utf-8')
             extension = file.get('name').split(".")[-1].encode('utf-8')
             
@@ -239,6 +241,8 @@ def dl_folder(folder_id):
         #print("List of Files:")
         #for item in items:
             #print("{0} ({1})".format(item['name'], item['id']))
+
+    return company_list
 
 def get_filenames_in_folder(folder_id):
     """Gets a list of file names from a folder from Google Drive.
