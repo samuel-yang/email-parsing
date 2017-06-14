@@ -71,7 +71,7 @@ def delete_file(file_id):
     """Permanently delete a file from Google Drive, skipping the trash.
     
       Args:
-        file_id: ID of the file to delete.
+        file_id: ID of the file to delete. 
       """       
     drive_service = initialize_drive_service()
     
@@ -462,10 +462,10 @@ def get_email(ind):
         
     Returns:
         mail, an email resource.
-    """        
+    """
+    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
-    
-    results = gmail_service.users().messages().list(userId='me').execute()
+    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     #messages is the list of messages 
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id'], format='full').execute()
@@ -479,10 +479,11 @@ def get_email_date(ind):
         
     Returns:
         date, the date of the email.
-    """     
+    """
+    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
     
-    results = gmail_service.users().messages().list(userId='me').execute()
+    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id'], format='metadata').execute()
     value = mail['payload']['headers']
@@ -502,11 +503,12 @@ def get_email_sender(ind):
     Returns:
         sender, the source of an email and the email address.
     """         
+    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
     sender = []
     info = ""
     
-    results = gmail_service.users().messages().list(userId='me').execute()
+    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id'], format='metadata').execute()
     value = mail['payload']['headers']
@@ -531,10 +533,11 @@ def get_email_attachment(ind):
     Returns:
         file, a list containing the file name of the attachment of an email.
     """
+    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
     
     file = []
-    results = gmail_service.users().messages().list(userId='me').execute()
+    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id']).execute()
     for part in mail['payload']['parts']:
@@ -551,9 +554,10 @@ def get_email_attachment_list(drive_list):
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
+    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
     
-    results = gmail_service.users().messages().list(userId='me').execute()
+    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
     ind = 0
