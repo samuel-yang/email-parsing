@@ -140,7 +140,7 @@ class bst():
             provider[0] = hash(string)
             provider.append(0)
             self.insert(root, self.node(provider[0], provider))
-        os.remove(filename)
+        # os.remove(filename)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
     def to_database(self, root, templist):
@@ -254,36 +254,31 @@ class convert():
 """Format class contains all formatting methods that will be used"""
 class format():
     global column_dictionary, column_list, currency_dictionary, currency_list, currency_rate
-    column_dictionary =({'Country': ['Country', 'CountryName']},
+    column_dictionary =({'Country': ['Country', 'CountryName', 'Country Name']},
                         {'Network': ['Network', 'OperatorName']},
                         {'Country/Network': ['Country/Operator', 'Region/Operator', 'Country/Network']},
                         {'MCC': ['MCC']},
                         {'MNC': ['MNC']},
                         {'MCCMNC': ['MCCMNC', 'Network code']},
                         ({'Rate': ['Rate', 'Price', 'New Price', 'New Price(Euro)', 'Price Euro', 'New Price EUR', 
-                            'New Price (EUR)', 'Price \nEUR/SMS', 'New Price (USD)', 'Rate - USD']}))
+                            'New Price (EUR)', 'Price \nEUR/SMS', 'New Price (USD)', 'Rate - USD', 'Price in GBP',
+                            'Price in AUD', 'Price in EUR']}))
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
 
     currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
-                            {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS']})
+                            {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS', 'Price in EUR']},
+                            {'GBP': ['Price in GBP']},
+                            {'CNY': []},
+                            {'MXN': []},
+                            {'AUD': ['Price in AUD']})
 
     # """Support only exists for USD, EUR right now, need to define dictionary for others"""
-    currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN']
+    currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN', 'AUD']
 
     """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
         correctly ordered.  takes in filename as string, returns new filename."""
-<<<<<<< HEAD
-    def excel_format(self, filename, source):
-        mccmnc_absent=True
-        mcc_absent=True
-        mnc_absent=True
-        mnc_val=[0]
-        mcc_val=[0]
-        mccmnc_val=[0]
-=======
     def excel_format(self, filename, source, sheetindex):
->>>>>>> b2943b5e51cf1f15914d10c67301948d77909284
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(sheetindex)
         new_book = xlwt.Workbook()
@@ -309,6 +304,13 @@ class format():
         colnum = sheet.ncols
 
         rate_present = False
+        mccmnc_absent=True
+        mcc_absent=True
+        mnc_absent=True
+        mnc_val=[0]
+        mcc_val=[0]
+        mccmnc_val=[0]
+
 
         for row in range(rownum):
             for y in range(colnum):
@@ -349,7 +351,31 @@ class format():
                         value = sheet.cell(x,y).value
                         mccmnc_val.append(value)
                         sheet_wr.write(x-row,4,value)
-                # """Rate"""
+
+                # # """Rate"""
+                # elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
+                #     rate_present = True
+                #     for x in range(len(currency_list)):
+                #         if sheet.cell(row,y).value in currency_dictionary[x][currency_list[x]]:
+                #             i = x
+                #             break
+                #     for x in range(row+1, rownum):
+                #         if sheet.cell(x,y).value == '-':
+                #             value = 0
+                #         else:
+                #             value = sheet.cell(x,y).value
+                #         sheet_wr.write(x-row,5,value)
+                #         sheet_wr.write(x-row,6,currency_list[i])
+                #         # """ Converting currencies here"""
+                #         if not currency_list[i] == 'USD':
+                #             converted = currency_rate[i]*float(value)
+                #         else:
+                #             converted = value
+                #         sheet_wr.write(x-row,7,converted)
+                #         sheet_wr.write(x-row,8, source)
+                #         sheet_wr.write(x-row,9, tomorrow)
+
+                # """Modified Rate""" - for use with Openmarket, should work for all
                 elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
                     rate_present = True
                     for x in range(len(currency_list)):
@@ -361,25 +387,25 @@ class format():
                             value = 0
                         else:
                             value = sheet.cell(x,y).value
-                        sheet_wr.write(x-row,5,value)
-                        sheet_wr.write(x-row,6,currency_list[i])
-                        # """ Converting currencies here"""
-                        if not currency_list[i] == 'USD':
-                            converted = currency_rate[i]*float(value)
+                        if sheet.cell(x,y).value == '':
+                            pass
                         else:
-                            converted = value
-                        sheet_wr.write(x-row,7,converted)
-                        sheet_wr.write(x-row,8, source)
-                        sheet_wr.write(x-row,9, tomorrow)
+                            sheet_wr.write(x-row,5,value)
+                            sheet_wr.write(x-row,6,currency_list[i])
+                            if not currency_list[i] == 'USD':
+                                converted = currency_rate[i]*float(value)
+                            else:
+                                converted = value
+                            sheet_wr.write(x-row,7,converted)
+                            sheet_wr.write(x-row,8,source)
+                            sheet_wr.write(x-row,9,tomorrow)                
                 else:
                     pass
-
-<<<<<<< HEAD
                 
         """ Computing missing MNC, MCC or MCCMNC Values"""
         
         # """MCCMNC is absent"""
-        if mcc_absent== False and mnc_absent==False and mccmnc_absent==True:
+        if mcc_absent == False and mnc_absent==False and mccmnc_absent==True:
             for i in range(1,len(mcc_val)):
                 if "," not in str(mnc_val[i]) and "/" not in str(mnc_val[i]):
                     ind1=str(mcc_val[i]).index(".")
@@ -403,10 +429,9 @@ class format():
                     ind3=value_mnc.index(".")
                     value_mnc=value_mnc[:ind3]
                 sheet_wr.write(i,3,value_mnc)
-=======
+
         if not rate_present:
             return -1
->>>>>>> b2943b5e51cf1f15914d10c67301948d77909284
 
         index = filename.rfind('.')
         filename1 = filename[:index]

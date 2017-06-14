@@ -9,7 +9,7 @@ import sys
 import requests
 
 base_url = 'http://api.fixer.io/latest'
-base_currencies = ['EUR', 'GBP', 'CNY', 'MXN']
+base_currencies = ['EUR', 'GBP', 'CNY', 'MXN', 'AUD']
 rate_in = 'USD'
 
 
