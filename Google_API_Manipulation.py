@@ -604,7 +604,7 @@ def find_source_from_email(email_string):
     Returns:
         source, the name of the source.
     """    
-    source_exists = False    
+    # source_exists = False    
 
     if not os.path.isfile('Aggregator Source Sheet.xlsx'):
         export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
@@ -621,8 +621,8 @@ def find_source_from_email(email_string):
                 source_exists = True
                 return source
 
-        if source_exists == False:
-            export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
+        # if source_exists == False:
+        #     export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
 
 def convert_date(date):
     '''Returns a date-time object.
