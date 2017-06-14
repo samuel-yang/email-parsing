@@ -25,6 +25,7 @@ def monty(filename, root, database, source):
         return 'No rate in document.'    
     bst().source_build(root, filename2) 
     bst().write(root, database)   
+    file_clean(filename)
 
 # """Tata"""
 def tata(filename, root, database, source):
@@ -34,6 +35,18 @@ def tata(filename, root, database, source):
         return 'No rate in document.'    
     bst().source_build(root, filename1)
     bst().write(root, database)
+    file_clean(filename)
+
+# """Tedexis"""
+def tedexis(filename, root, database, source):
+    filename1 = format().excel_format(filename, source, 0)
+    if filename1 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'
+    filename2 = format().excel_filter(filename1)
+    bst().source_build(root, filename2)
+    bst().write(root, database)
+    file_clean(filename)
 
 # """General Use Case"""
 # support for C3ntro, Mitto, MMD, UPM, Wavecell
@@ -44,6 +57,7 @@ def general(filename, root, database, source):
         return 'No rate in document.'
     bst().source_build(root, filename1)
     bst().write(root, database)
+    file_clean(filename)
     # move_to_processed(filename)
 
 
@@ -72,10 +86,10 @@ def main():
     # print temp_list
     # temp = temp_list.pop()
     # temp = company_list.pop()
-    temp = 'Hook Mobile Pricing 7th April 2017.xlsx'
-    emaildate = temp[3]
+    temp = '20170421 - Tedexis_Pricing_List_PREMIUM.xlsx'
+    # emaildate = temp[3]
     bst().database_build(database, header)
-    status = general(temp, header, database, 'Openmarket')
+    status = tedexis(temp, header, database, 'Tedexis')
     # status = general(temp[0], header, database, 'Openmarket')
     print status
 

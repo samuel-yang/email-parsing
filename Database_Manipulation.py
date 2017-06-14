@@ -201,7 +201,7 @@ class convert():
         filename1 = filename1 + '.xls'
         book.save(filename1)
         file.close()
-        os.remove(filename)
+        # os.remove(filename)
         return filename1    
 
 
@@ -242,7 +242,7 @@ class convert():
 
         tsvfile.close()
         csvfile.close()
-        os.remove(filename)
+        # os.remove(filename)
         return filename1
 
     """ PDF_TO_CSV takes in a string argument of filename, and returns string with 
@@ -254,12 +254,12 @@ class convert():
 """Format class contains all formatting methods that will be used"""
 class format():
     global column_dictionary, column_list, currency_dictionary, currency_list, currency_rate
-    column_dictionary =({'Country': ['Country', 'CountryName', 'Country Name']},
+    column_dictionary =({'Country': ['Country', 'CountryName']},
                         {'Network': ['Network', 'OperatorName']},
                         {'Country/Network': ['Country/Operator', 'Region/Operator', 'Country/Network']},
                         {'MCC': ['MCC']},
                         {'MNC': ['MNC']},
-                        {'MCCMNC': ['MCCMNC', 'Network code']},
+                        {'MCCMNC': ['MCCMNC', 'Network code', 'IMSI']},
                         ({'Rate': ['Rate', 'Price', 'New Price', 'New Price(Euro)', 'Price Euro', 'New Price EUR', 
                             'New Price (EUR)', 'Price \nEUR/SMS', 'New Price (USD)', 'Rate - USD', 'Price in GBP',
                             'Price in AUD', 'Price in EUR']}))
@@ -269,15 +269,35 @@ class format():
     currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
                             {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS', 'Price in EUR']},
                             {'GBP': ['Price in GBP']},
-                            {'CNY': []},
-                            {'MXN': []},
                             {'AUD': ['Price in AUD']})
 
     # """Support only exists for USD, EUR right now, need to define dictionary for others"""
     currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN', 'AUD']
 
-    """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
-        correctly ordered.  takes in filename as string, returns new filename."""
+    # """ excel_filter takes and removes empty rows from a FORMATTED document """
+    def excel_filter(self, filename):
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0)
+        new_book = xlwt.Workbook()
+        sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True)
+
+        for i in range(sheet.nrows):
+            if sheet.cell(i,0).value == '':
+                break
+            for j in range(sheet.ncols):
+                value = sheet.cell(i,j).value
+                sheet_wr.write(i,j,value)
+
+        index = filename.rfind('.')
+        filename1 = filename[:index]
+        filename1 = filename1 + ' and FILTERED.xls'
+        new_book.save(filename1)
+        return filename1
+        # os.remove(filename)
+
+
+    # """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
+    #   correctly ordered.  takes in filename as string, returns new filename."""
     def excel_format(self, filename, source, sheetindex):
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(sheetindex)
@@ -332,26 +352,25 @@ class format():
                         sheet_wr.write(x-row,1,value[1])
                 # """MCC"""
                 elif sheet.cell(row,y).value in column_dictionary[3][column_list[3]]:
-                    mcc_absent=False
+                    # mcc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         mcc_val.append(value)
                         sheet_wr.write(x-row,2,value)
                 # """MNC"""
                 elif sheet.cell(row,y).value in column_dictionary[4][column_list[4]]:
-                    mnc_absent=False
+                    # mnc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         mnc_val.append(value)
                         sheet_wr.write(x-row,3,value)
                 # """MCCMNC"""
                 elif sheet.cell(row,y).value in column_dictionary[5][column_list[5]]:
-                    mccmnc_absent=False
+                    # mccmnc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         mccmnc_val.append(value)
                         sheet_wr.write(x-row,4,value)
-
                 # # """Rate"""
                 # elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
                 #     rate_present = True
@@ -374,8 +393,7 @@ class format():
                 #         sheet_wr.write(x-row,7,converted)
                 #         sheet_wr.write(x-row,8, source)
                 #         sheet_wr.write(x-row,9, tomorrow)
-
-                # """Modified Rate""" - for use with Openmarket, should work for all
+                # """Modified Rate
                 elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
                     rate_present = True
                     for x in range(len(currency_list)):
@@ -398,13 +416,13 @@ class format():
                                 converted = value
                             sheet_wr.write(x-row,7,converted)
                             sheet_wr.write(x-row,8,source)
-                            sheet_wr.write(x-row,9,tomorrow)                
+                            sheet_wr.write(x-row,9,tomorrow)                                
                 else:
                     pass
                 
-        """ Computing missing MNC, MCC or MCCMNC Values"""
+        # """ Computing missing MNC, MCC or MCCMNC Values"""
         
-        # """MCCMNC is absent"""
+        # # """MCCMNC is absent"""
         if mcc_absent == False and mnc_absent==False and mccmnc_absent==True:
             for i in range(1,len(mcc_val)):
                 if "," not in str(mnc_val[i]) and "/" not in str(mnc_val[i]):
@@ -476,6 +494,25 @@ class format():
         str2=cell_val[start_ind1:].strip()
         return [str1,str2]
 
+def file_clean(filename):
+    index = filename.rfind('.')
+    short = filename[:index]
+    if os.path.isfile(short + '.xls'):
+        os.remove(short + '.xls')
+
+    if os.path.isfile(short + '.xlsx'):
+        os.remove(short + '.xlsx')
+
+    if os.path.isfile(short + '.csv'):
+        os.remove(short + '.csv')
+
+    if os.path.isfile(short + ' FORMATTED.xls'):
+        os.remove(short + ' FORMATTED.xls')
+
+    if os.path.isfile(short + ' FORMATTED and FILTERED.xls'):
+        os.remove(short + ' FORMATTED and FILTERED.xls')
+
+    print "All file versions of ", short, "have been deleted."
 ##print(seperator(str1))
 ##print(seperator(str2))
 
