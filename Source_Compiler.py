@@ -66,14 +66,17 @@ def main():
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
 
-    company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    # company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    # print company_list
     # temp_list = get_email_attachment_list(company_list)
+    # print temp_list
     # temp = temp_list.pop()
-    temp = company_list.pop()
-    # temp = filename
+    # temp = company_list.pop()
+    temp = 'Hook Mobile Pricing 7th April 2017.xlsx'
+    emaildate = temp[3]
     bst().database_build(database, header)
-    status = monty(temp, header, database, 'Monty Mobilel')
-    # status = general(temp[0], header, database, temp[1])
+    status = general(temp, header, database, 'Openmarket')
+    # status = general(temp[0], header, database, 'Openmarket')
     print status
 
 
