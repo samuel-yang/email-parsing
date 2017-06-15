@@ -481,8 +481,9 @@ def get_email(ind):
     Returns:
         mail, an email resource.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX"]
+    
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     #messages is the list of messages 
     messages = results['messages']
@@ -498,8 +499,8 @@ def get_email_date(ind):
     Returns:
         date, the date of the email.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX"]    
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
@@ -521,8 +522,8 @@ def get_email_sender(ind):
     Returns:
         sender, the source of an email and the email address.
     """         
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX"]
     sender = []
     info = ""
     
@@ -551,10 +552,10 @@ def get_email_attachment(ind):
     Returns:
         file, a list containing the file name of the attachment of an email.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
-    
+    label_ids = ["INBOX"]
     file = []
+    
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id']).execute()
@@ -585,7 +586,7 @@ def part_id(part):
             return filename
 
 def part_find(part):
-    '''Recursive method that finds file name of an attachment using partId, looking through parts
+    '''Recursive method that finds file name of an attachment using partId, looking through parts.
     
     Args:
         part: dictionary "part" of the email.
@@ -613,8 +614,8 @@ def get_email_attachment_list():
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
-    label_ids=["INBOX", "Label_2"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX", "Label_2"]
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
@@ -726,19 +727,17 @@ def move_to_day_folder(filename, datetime_obj, foldername):
     move_to_folder(folder_name, folder_id_main)
 
 def remove_label(ind):
-    """ Removes the "New" label
+    """Removes the "New" label.
 
     Args:
-        ind: Index of the message from which the attachments have been pulled
+        ind: Index of the message from which the attachments have been pulled.
     """
+    gmail_service = initialize_gmail_service()
+    label_id = ["INBOX", "Label_2"]
     
-    label_id=['INBOX','Label_2']
-    credentials = get_credentials()
-    http = credentials.authorize(httplib2.Http())
-    service = discovery.build('gmail', 'v1', http=http)
-    results = service.users().messages().list(userId='me', labelIds=label_id).execute()
+    results = gmail_service.users().messages().list(userId='me', labelIds=label_id).execute()
     messages = results['messages']
-    mail = service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ['Label_1']}).execute()
+    mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ["Label_2"]}).execute()
 
 def main():
     drive_service = initialize_drive_service()
