@@ -474,6 +474,7 @@ def upload_as_gsheet(file_to_upload, filename):
         
 def get_email(ind):
     """Gets an email message resource from the Gmail inbox.
+    Only gets emails labeled "New".
     
     Args:
         ind: index of the email.
@@ -482,7 +483,7 @@ def get_email(ind):
         mail, an email resource.
     """
     gmail_service = initialize_gmail_service()
-    label_ids = ["INBOX"]
+    label_ids = ["INBOX", "Label_2"]
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     #messages is the list of messages 
@@ -492,6 +493,7 @@ def get_email(ind):
 
 def get_email_date(ind):
     """Gets the date of an email message from the Gmail inbox.
+    Only gets emails labeled "New".
     
     Args:
         ind: index of the email.
@@ -500,7 +502,7 @@ def get_email_date(ind):
         date, the date of the email.
     """
     gmail_service = initialize_gmail_service()
-    label_ids = ["INBOX"]    
+    label_ids = ["INBOX", "Label_2"]    
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
@@ -515,6 +517,7 @@ def get_email_date(ind):
 
 def get_email_sender(ind):
     """Gets the sender of an email message from the Gmail inbox.
+    Only gets emails labeled "New".
     
     Args:
         ind: index of the email.
@@ -523,7 +526,7 @@ def get_email_sender(ind):
         sender, the source of an email and the email address.
     """         
     gmail_service = initialize_gmail_service()
-    label_ids = ["INBOX"]
+    label_ids = ["INBOX", "Label_2"]
     sender = []
     info = ""
     
@@ -545,6 +548,7 @@ def get_email_sender(ind):
 
 def get_email_attachment(ind):
     """Gets the name of an attachment of an email message from the Gmail inbox.
+    Only gets emails labeled "New".
     
     Args:
         ind: index of the email.
@@ -553,7 +557,7 @@ def get_email_attachment(ind):
         file, a list containing the file name of the attachment of an email.
     """
     gmail_service = initialize_gmail_service()
-    label_ids = ["INBOX"]
+    label_ids = ["INBOX", "Label_2"]
     file = []
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
@@ -616,7 +620,7 @@ def get_email_attachment_list():
     """
     gmail_service = initialize_gmail_service()
     label_ids = ["INBOX", "Label_2"]
-    remove=[]
+    remove = []
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
@@ -650,7 +654,7 @@ def get_email_attachment_list():
         remove.append(ind)
         ind = ind + 1
     for i in range(len(remove)):
-        remove_label(remove[i])
+        remove_label(remove[0])
     return attach_list
 
 def find_source_from_email(email_string):
