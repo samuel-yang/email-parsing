@@ -161,6 +161,10 @@ def rename_file(filename, newname):
         filename: name of the file to rename.
         newname: new name of the file.
     """
+    index = filename.rfind('.') - 1
+    extension = filename[-index:]
+    newname = newname + extension
+
     drive_service = initialize_drive_service()
     file_id = find_file_id(filename)
     file_metadata = {
@@ -720,8 +724,15 @@ def move_to_dayfolder(filename, datetime_obj):
     folder_id = find_file_id(folder_name)
     if folder_id == None:
         create_folder(folder_name)
+<<<<<<< HEAD
         folder_id = find_file_id(folder_name)
     move_to_folder(filename, folder_id)
+=======
+        folder_id=find_file_id(folder_name)
+    move_to_folder(filename,folder_id)
+    folder_id_main=find_file_id("Files")
+    move_to_folder(folder_name,folder_id_main)
+>>>>>>> aef029434b44b154760b28f0829b5066e98d305c
 
 def main():
     drive_service = initialize_drive_service()
