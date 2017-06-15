@@ -708,7 +708,7 @@ def convert_date(date):
     date_obj = datetime.datetime.strptime(date, date_format)
     return date_obj.date()
 
-def move_to_dayfolder(filename,datetime_obj):
+def move_to_dayfolder(filename, datetime_obj):
     """Organizes the files according to its respective "day" folder
 
     Args:
@@ -716,12 +716,12 @@ def move_to_dayfolder(filename,datetime_obj):
         datetime_obj: Date of the email
 
     """
-    folder_name=str(datetime_obj)
-    folder_id=find_file_id(folder_name)
-    if folder_id==None:
+    folder_name = str(datetime_obj)
+    folder_id = find_file_id(folder_name)
+    if folder_id == None:
         create_folder(folder_name)
-        folder_id=find_file_id(folder_name)
-    move_to_folder(filename,folder_id)
+        folder_id = find_file_id(folder_name)
+    move_to_folder(filename, folder_id)
 
 def main():
     drive_service = initialize_drive_service()
