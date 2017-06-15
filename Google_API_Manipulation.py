@@ -540,53 +540,10 @@ def get_email_attachment(ind):
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id']).execute()
-    for part in mail['payload']['parts']:        
-        filename = part_id(part)
-        if filename != None:
-            file.append(filename.encode('utf-8'))
-                
-        filename2 = part_find(part)
-        if filename2 != None:
-            if filename2 not in file:
-                file.append(filename2.encode('utf-8'))
-
+    for part in mail['payload']['parts']:
+        if part['filename']:
+            file.append(part['filename'].encode('utf-8'))
     return file
-
-def part_id(part):
-    '''Finds file name of an attachment using partId.
-    
-    Args:
-        part: dictionary "part" of the email.
-        
-    Returns:
-        filename, the name of the file.
-    '''
-    if 'partId' in part.keys() and part['partId'] > 0:
-        if part['filename'] != "":
-            filename = part['filename']
-            return filename
-
-def part_find(part):
-    '''Recursive method that finds file name of an attachment using partId, looking through parts
-    
-    Args:
-        part: dictionary "part" of the email.
-        
-    Returns:
-        filename, the name of the file.
-    
-    '''    
-    filename = part_id(part)
-    
-    if 'parts' in part.keys():
-        for part2 in part['parts']:
-            filename = part_id(part2)
-            if filename == None:
-                part_find(part2)
-                return filename
-            else:
-                return filename
-    return filename
 
 def get_email_attachment_list(drive_list):
     """Gets a list of attachments using a list of file names from Google Drive.
@@ -690,7 +647,7 @@ def convert_date(date):
     date = date[start:end+len(find)].strip()
     date_format = "%d %b %Y"
     date_obj = datetime.datetime.strptime(date, date_format)
-    return date_obj
+    return date_obj.date()
 
 def main():
     drive_service = initialize_drive_service()
