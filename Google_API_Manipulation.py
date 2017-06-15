@@ -724,15 +724,10 @@ def move_to_dayfolder(filename, datetime_obj):
     folder_id = find_file_id(folder_name)
     if folder_id == None:
         create_folder(folder_name)
-<<<<<<< HEAD
         folder_id = find_file_id(folder_name)
     move_to_folder(filename, folder_id)
-=======
-        folder_id=find_file_id(folder_name)
-    move_to_folder(filename,folder_id)
-    folder_id_main=find_file_id("Files")
-    move_to_folder(folder_name,folder_id_main)
->>>>>>> aef029434b44b154760b28f0829b5066e98d305c
+    folder_id_main = find_file_id("Files")
+    move_to_folder(folder_name, folder_id_main)
 
 def main():
     drive_service = initialize_drive_service()
