@@ -472,6 +472,7 @@ class format():
                 sheet_wr.write(i,3,value_mnc)
 
         if not rate_present:
+            move_to_day_folder(filename, edate, 'NoRates')
             return -1
 
         index = filename.rfind('.')
