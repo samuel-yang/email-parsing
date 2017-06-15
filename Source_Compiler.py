@@ -24,8 +24,16 @@ def monty(filename, root, database, source, edate):
         move_to_noRates(filename)
         return 'No rate in document.'    
     bst().source_build(root, filename2) 
-    bst().write(root, database)   
-    file_clean(filename)
+    status = bst().write(root, database)   
+    # file_clean(filename)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    # rename_file(filename, newname)
+    # move_to_processed(filename)
+    return status
 
 # """Tata"""
 def tata(filename, root, database, source, edate):
@@ -34,84 +42,136 @@ def tata(filename, root, database, source, edate):
         move_to_noRates(filename)
         return 'No rate in document.'    
     bst().source_build(root, filename1)
-    bst().write(root, database)
-    file_clean(filename)
-
-# """Tedexis"""
-def tedexis(filename, root, database, source, edate):
-    filename1 = format().excel_format(filename, source, 0, edate)
-    if filename1 == -1:
-        move_to_noRates(filename)
-        return 'No rate in document.'
-    filename2 = format().excel_filter(filename1)
-    bst().source_build(root, filename2)
-    bst().write(root, database)
-    file_clean(filename)
-
-# """General Use Case"""
-# support for C3ntro, Mitto, MMD, UPM, Wavecell
-def general(filename, root, database, source, edate):
-    filename1 = format().excel_format(filename, source, 0, edate)
-    if filename1 == -1:
-        move_to_noRates(filename)
-        return 'No rate in document.'
-    bst().source_build(root, filename1)
-    bst().write(root, database)
+    status = bst().write(root, database)
     # file_clean(filename)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    rename_file(filename, newname)
-
+    # rename_file(filename, newname)
     # move_to_processed(filename)
+    return status
 
+# """Tedexis"""
+def tedexis(filename, root, source, edate, upload_list):
+    bst.database_build(root, edate)
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'
+    filename2 = format().excel_filter(filename1)
+    bst().source_build(root, filename2)
+    status = bst().write(root, edate, upload_list)
+    # file_clean(filename)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    # rename_file(filename, newname)
+    # move_to_processed(filename)
+    return status
+
+# """General Use Case"""
+# support for mmd, UPM, wavecell, mitto, monty, centro, tata, tedexis, bics, openmarket
+def general(filename, root, source, edate, upload_list):
+    bst().database_build(root, edate)
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'
+    bst().source_build(root, filename1)
+    status = bst().write(root, edate, upload_list)
+    # file_clean(filename)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    # rename_file(filename, newname)
+    # move_to_day_folder(neswname, edate, 'Processed')
+    return status
 
 
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
-    # """Defining dates for use in methods"""
-    today = str(date.today())[-5:]
-    tomorrow_ = date.today() + timedelta(days = 1)
-    tomorrow = str(tomorrow_)[-5:]
-    yesterday_ = date.today() - timedelta(days = 1)
-    yesterday = str(yesterday_)[-5:]
-    database = 'Data/Rates for ' + today + '.xls'
 
-    if not os.path.isfile(database):
-        old_database = 'Data/Rates for ' + yesterday + '.xls'
-        if not os.path.isfile(old_database):
-        	book = xlwt.Workbook()
-        	sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
-        	book.save(database)
-        else:
-        	shutil.copy2(old_database, database)
-        print "new file made"
+    # if not os.path.isfile(database):
+    #     old_database = 'Data/Rates for ' + yesterday + '.xls'
+    #     if not os.path.isfile(old_database):
+    #         book = xlwt.Workbook()
+    #         sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
+    #         book.save(database)
+    #     else:
+    #         shutil.copy2(old_database, database)
+    #     print "new file made"
+
+    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom']
+    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications']
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
 
-    company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    dl_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    upload_list = []
     
-    if len(company_list) == 0:
-    	print "No new files to be processed."
-    	return
+    if len(dl_list) == 0:
+        print "No new files to be processed."
+        return
+    else:
+        print "\nDownload list is: ", dl_list
 
-    # print company_list
-    full_list = get_email_attachment_list(company_list)
-    # print temp_list
-    temp_list = full_list.pop()
-    edate_today = temp_list[3]
-    # temp = temp_list.pop()
-    # temp = company_list.pop()
-    # temp = '20170421 - Tedexis_Pricing_List_PREMIUM.xlsx'
-    # emaildate = temp[3]
-    bst().database_build(database, header)
-    status = general(temp_list[0], header, database, temp_list[1], edate_today)
-    # status = general(temp[0], header, database, 'Openmarket')
-    # print status
+    company_list = get_email_attachment_list(dl_list)
+    print "Email attachment list is: ", company_list 
 
+    for i in range(len(company_list)):
+        file_to_process = company_list.pop()
+        processed = False
+        print "\nFile currently being processed is: ", file_to_process[0]
+        print "Remaining number of files to be processed is: ", len(company_list)
+        for j in range(len(general_dictionary)):
+            # """General use case scenario"""
+            if file_to_process[1] == general_dictionary[j]:
+                status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                print "Status of: ", file_to_process[0], ' is: ', status
+                processed = True
+            # """Special use case scenario"""
+            elif j <= len(special_dictionary):
+                # """Tedexis"""
+                if file_to_process[1] == special_dictionary[0]:
+                    status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print "Status of: ", file_to_process[0], ' is: ', status
+                    processed = True                
+                # """Monty Mobile"""
+                elif file_to_process[1] == special_dictionary[1]:
+                    status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
+                # """Tata Communications"""
+                elif file_to_process[1] == special_dictionary[2]:
+                    status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
+                # """Not special case"""
+                else:
+                    pass
+            # """Case not yet tested:::
+        if not processed:
+            print ('The file: ', file_to_process[0], ' is currently not supported.  Source of file is: ', 
+                file_to_process[1], '. Contact the developer to build support for this document.')
+
+    print '\nNow uploading compiled data flies'
+    for i in range(len(upload_list)):
+        filename = upload_list.pop()
+        filename = 'Rates for ' + filename + '.xls'
+        to_delete = find_file_id(filename)
+        if not to_delete == None:
+            delete_file(to_delete)
+        upload_as_gsheet('Data/' + filename, filename)
+        move_to_folder(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+
+    print "\nSource_Compiler has succesfully run to completion.\n\n\n"
 
 if __name__ == '__main__':
     main()
