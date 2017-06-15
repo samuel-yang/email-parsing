@@ -93,7 +93,6 @@ def delete_file(file_id):
     
     try:
         drive_service.files().delete(fileId=file_id).execute()
-        print "File with file_id: ", file_id, "has been deleted."
     except errors.HttpError, error:
         print("An error occurred: %s" % error)    
 
@@ -339,7 +338,7 @@ def find_file_id(filename):
     
     #If no matching files found
     if file_id == None:
-        print("File ", filename, " not found.")
+        print("File not found.")
         
     return file_id
 
@@ -615,18 +614,18 @@ def get_email_attachment_list(drive_list):
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
-    label_ids=["INBOX"]
+    label_ids=["INBOX",'Label_2']
     gmail_service = initialize_gmail_service()
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
     ind = 0
-    last_ind = (len(messages) - 1)
+    last_ind = len(messages)
     file_attach = []
     attach_list = []
     loop_break = True
-    while(len(drive_list) > 0) or ind != last_ind:
+    while(len(drive_list) > 0) or ind < last_ind:
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
@@ -652,6 +651,7 @@ def get_email_attachment_list(drive_list):
             break
         #if loop_break == False:
             #break
+        remove_label(ind)
         ind = ind + 1
         
     return attach_list
@@ -729,6 +729,23 @@ def move_to_day_folder(filename, datetime_obj, foldername):
     move_to_folder(filename, folder_id)
     folder_id_main = find_file_id(foldername)
     move_to_folder(folder_name, folder_id_main)
+
+def remove_label(ind):
+    """ Removes the "New" label
+
+    Args:
+        ind: Index of the message from which the attachments have been pulled
+    """
+    
+    label_id=['INBOX','Label_2']
+    credentials = get_credentials()
+    http = credentials.authorize(httplib2.Http())
+    service = discovery.build('gmail', 'v1', http=http)
+    results = service.users().messages().list(userId='me', labelIds=label_id).execute()
+    messages = results['messages']
+    mail = service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ['Label_1']}).execute()
+
+
 
 def main():
     drive_service = initialize_drive_service()
