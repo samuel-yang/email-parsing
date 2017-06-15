@@ -161,6 +161,10 @@ def rename_file(filename, newname):
         filename: name of the file to rename.
         newname: new name of the file.
     """
+    index = filename.rfind('.') - 1
+    extension = filename[-index:]
+    newname = newname + extension
+
     drive_service = initialize_drive_service()
     file_id = find_file_id(filename)
     file_metadata = {
