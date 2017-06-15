@@ -17,9 +17,9 @@ sys.setdefaultencoding('utf-8')
 # filename = 'Test.xls'
 
 # """Monty Mobile"""
-def monty(filename, root, database, source):
+def monty(filename, root, database, source, edate):
     filename1 = convert().csv_to_excel(filename)
-    filename2 = format().excel_format(filename1, source, 0)
+    filename2 = format().excel_format(filename1, source, 0, edate)
     if filename2 == -1:
         move_to_noRates(filename)
         return 'No rate in document.'    
@@ -58,6 +58,13 @@ def general(filename, root, database, source, edate):
     bst().source_build(root, filename1)
     bst().write(root, database)
     # file_clean(filename)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    rename_file(filename, newname)
+
     # move_to_processed(filename)
 
 
@@ -86,18 +93,22 @@ def main():
     header = bst().node(title[0], title)
 
     company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    
+    if len(company_list) == 0:
+    	print "No new files to be processed."
+    	return
+
     # print company_list
     full_list = get_email_attachment_list(company_list)
     # print temp_list
     temp_list = full_list.pop()
     edate_today = temp_list[3]
-    edate_tomorrow = edate_today + timedelta(days = 1)
     # temp = temp_list.pop()
     # temp = company_list.pop()
     # temp = '20170421 - Tedexis_Pricing_List_PREMIUM.xlsx'
     # emaildate = temp[3]
     bst().database_build(database, header)
-    status = general(temp_list[0], header, database, temp_list[1], edate_tomorrow)
+    status = general(temp_list[0], header, database, temp_list[1], edate_today)
     # status = general(temp[0], header, database, 'Openmarket')
     # print status
 

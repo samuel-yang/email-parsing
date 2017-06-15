@@ -178,6 +178,8 @@ class bst():
                     sheet.write(x,k,provider[k+1])
                     # print "marker 4"
 
+        sheet.set_panes_frozen(True)
+        sheet.set_horz_split_pos(1)
         book.save(filename)
         print "Successfully written"
 
@@ -323,6 +325,7 @@ class format():
         rownum = sheet.nrows
         colnum = sheet.ncols
 
+        edate_effective = edate + timedelta(days = 1)
         rate_present = False
         mccmnc_absent=True
         mcc_absent=True
@@ -416,7 +419,7 @@ class format():
                                 converted = value
                             sheet_wr.write(x-row,7,converted)
                             sheet_wr.write(x-row,8,source)
-                            sheet_wr.write(x-row,9,str(edate))                                
+                            sheet_wr.write(x-row,9,str(edate_effective))                                
                 else:
                     pass
                 
