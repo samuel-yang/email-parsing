@@ -678,7 +678,6 @@ def find_source_from_email(email_string):
         book = xlrd.open_workbook('Aggregator Source Sheet.xlsx')
         sheet = book.sheet_by_index(0)
         rownum = sheet.nrows
-        colnum = sheet.ncols
     
         for x in range(rownum):          
             if email_string.lower().encode("utf-8") == str(sheet.cell(x,0).value).encode("utf-8"):
