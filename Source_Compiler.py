@@ -123,10 +123,11 @@ def main():
         print "\nDownload list is: ", dl_list
 
     company_list = get_email_attachment_list(dl_list)
-    print "Email attachment list is: ", company_list
+    print "Email attachment list is: ", company_list 
 
     for i in range(len(company_list)):
         file_to_process = company_list.pop()
+        processed = False
         print "\nFile currently being processed is: ", file_to_process[0]
         print "Remaining number of files to be processed is: ", len(company_list)
         for j in range(len(general_dictionary)):
@@ -134,28 +135,31 @@ def main():
             if file_to_process[1] == general_dictionary[j]:
                 status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                 print "Status of: ", file_to_process[0], ' is: ', status
+                processed = True
             # """Special use case scenario"""
             elif j <= len(special_dictionary):
                 # """Tedexis"""
                 if file_to_process[1] == special_dictionary[0]:
                     status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print "Status of: ", file_to_process[0], ' is: ', status
+                    processed = True                
                 # """Monty Mobile"""
                 elif file_to_process[1] == special_dictionary[1]:
                     status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """Tata Communications"""
                 elif file_to_process[1] == special_dictionary[2]:
                     status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """Not special case"""
                 else:
                     pass
             # """Case not yet tested:::
-            elif j == len(general_dictionary):
-                print "The final check has been entered"
-                if not file_to_process[i] == general_dictionary[j]:
-                    print 'The file: ', file_to_process[0], ' is currently not supported.  Contact the developer to build support for this document.'
+        if not processed:
+            print ('The file: ', file_to_process[0], ' is currently not supported.  Source of file is: ', 
+                file_to_process[1], '. Contact the developer to build support for this document.')
 
     print '\nNow uploading compiled data flies'
     for i in range(len(upload_list)):
@@ -166,6 +170,8 @@ def main():
             delete_file(to_delete)
         upload_as_gsheet('Data/' + filename, filename)
         move_to_folder(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+
+    print "\nSource_Compiler has succesfully run to completion.\n\n\n"
 
 if __name__ == '__main__':
     main()
