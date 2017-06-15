@@ -616,7 +616,7 @@ def get_email_attachment_list():
     """
     gmail_service = initialize_gmail_service()
     label_ids = ["INBOX", "Label_2"]
-    
+    remove=[]
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
@@ -647,9 +647,10 @@ def get_email_attachment_list():
             break
         #if loop_break == False:
             #break
-        remove_label(ind)
+        remove.append(ind)
         ind = ind + 1
-        
+    for i in range(len(remove)):
+        remove_label(remove[i])
     return attach_list
 
 def find_source_from_email(email_string):
