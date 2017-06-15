@@ -474,7 +474,7 @@ def upload_as_gsheet(file_to_upload, filename):
         
 def get_email(ind):
     """Gets an email message resource from the Gmail inbox.
-    Only gets emails labeled "New".
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -493,7 +493,7 @@ def get_email(ind):
 
 def get_email_date(ind):
     """Gets the date of an email message from the Gmail inbox.
-    Only gets emails labeled "New".
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -517,7 +517,7 @@ def get_email_date(ind):
 
 def get_email_sender(ind):
     """Gets the sender of an email message from the Gmail inbox.
-    Only gets emails labeled "New".
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -548,7 +548,7 @@ def get_email_sender(ind):
 
 def get_email_attachment(ind):
     """Gets the name of an attachment of an email message from the Gmail inbox.
-    Only gets emails labeled "New".
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -620,7 +620,6 @@ def get_email_attachment_list():
     """
     gmail_service = initialize_gmail_service()
     label_ids = ["INBOX", "Label_2"]
-    remove = []
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
@@ -628,6 +627,7 @@ def get_email_attachment_list():
     last_ind = len(messages)
     file_attach = []
     attach_list = []
+    remove = []    
     loop_break = True
     while (ind < last_ind):
         file_attach = get_email_attachment(ind)
@@ -653,7 +653,7 @@ def get_email_attachment_list():
             #break
         remove.append(ind)
         ind = ind + 1
-    for i in range(len(remove)):
+    for index in remove:
         remove_label(remove[0])
     return attach_list
 
