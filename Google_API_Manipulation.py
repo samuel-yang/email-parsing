@@ -67,6 +67,22 @@ def initialize_gmail_service():
     
     return gmail_service
 
+def create_folder(name):
+    """Creates a folder in Google Drive.
+
+      Args:
+        name: name of the folder 
+      """     
+    drive_service = initialize_drive_service()
+    
+    file_metadata = {
+        'name' : name,
+      'mimeType' : 'application/vnd.google-apps.folder'
+    }
+    file = drive_service.files().create(body=file_metadata,
+                                        fields='id').execute()
+    print("Created folder \"" + name + "\" (ID: %s)" % file.get('id'))  
+
 def delete_file(file_id):
     """Permanently delete a file from Google Drive, skipping the trash.
     
@@ -104,7 +120,7 @@ def clean_folder(folder_id):
             file_id = file.get('id')
             file_name_full = file.get('name')
             
-            print("Deleted Google file: %s (%s)" % (file_name_full, file_id))
+            print("Deleted Google file: %s (ID: %s)" % (file_name_full, file_id))
             delete_file(file_id)
             delete = True
                 
@@ -125,7 +141,7 @@ def clean_folder(folder_id):
             extension = file.get('name').split(".")[-1]
             
             if (extension != 'xls') and (extension != 'xlsx') and (extension != 'csv') and (extension != 'pdf'):
-                print("Deleted file: %s (%s)" % (file_name_full, file_id))
+                print("Deleted file: %s (ID: %s)" % (file_name_full, file_id))
                 delete_file(file_id)
                 delete = True
                 
@@ -153,7 +169,7 @@ def rename_file(filename, newname):
     
     try:
         file = drive_service.files().update(fileId=file_id, body=file_metadata, fields='id').execute()
-        print("File \"{0}\" renamed as: {1} ({2}).".format(filename, newname, file.get('id')))
+        print("File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file.get('id')))
     except TypeError:
         pass     
         
@@ -171,7 +187,7 @@ def dl_file(file_id, file_name):
     fh = io.FileIO(file_name, 'wb')
     downloader = MediaIoBaseDownload(fh, request)
     done = False
-    print("Downloading " + file_name + " (" + file_id + ").")
+    print("Downloading " + file_name + " (ID: " + file_id + ").")
     while done is False:
         status, done = downloader.next_chunk()
         print("Download %d%%." % int(status.progress() * 100))
@@ -191,7 +207,7 @@ def export_sheet(file_id):
     fh = io.FileIO(file_name + '.xlsx', 'wb')
     downloader = MediaIoBaseDownload(fh, request)
     done = False
-    print("Downloading " + file_name + " (" + file_id + ").")
+    print("Downloading " + file_name + " (ID: " + file_id + ").")
     while done is False:
         status, done = downloader.next_chunk()
         print "Download %d%%." % int(status.progress() * 100)    
@@ -226,7 +242,7 @@ def dl_folder(folder_id):
             
             if (extension == 'xls') or (extension == 'xlsx') or (extension == 'csv') or (extension == 'pdf'):
                 files_exist = True
-                print ("Found file: %s (%s)" % (file_name, file_id))
+                print ("Found file: %s (ID: %s)" % (file_name, file_id))
                 dl_file(file_id, file_name)
                     
         page_token = response.get('nextPageToken', None)
@@ -276,7 +292,7 @@ def get_filenames_in_folder(folder_id):
             
             if (extension == 'xls') or (extension == 'xlsx') or (extension == 'csv') or (extension == 'pdf'):
                 files_exist = True
-                print ("Found file: %s (%s)" % (file_name_full, file_id))
+                print ("Found file: %s (ID: %s)" % (file_name_full, file_id))
                 file_list.append(file_name_full.encode('utf-8'))
                     
         page_token = response.get('nextPageToken', None)
@@ -381,7 +397,7 @@ def move_to_folder(filename, folder_id):
                                         addParents=parent_id,
                                         removeParents=previous_parents,
                                         fields='id, parents').execute()
-        print("Moved \"" + filename + "\" to " + folder_name + " (%s)" % parent_id)
+        print("Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
     except TypeError:
         print("Could not find file to move.")    
     except googleapiclient.errors.HttpError:
@@ -450,7 +466,7 @@ def upload_as_gsheet(file_to_upload, filename):
         file = drive_service.files().create(body=file_metadata,
                                         media_body=media,
                                         fields='id').execute()
-        print("File \"{0}\" uploaded as: {1} ({2}).".format(file_to_upload, filename, file.get('id')))    
+        print("File \"{0}\" uploaded as: {1} (ID: {2}).".format(file_to_upload, filename, file.get('id')))    
     else:
         print("Invalid file name or extension. Provide full file name with .xls or .xlsx extensions.")
         
@@ -612,18 +628,18 @@ def get_email_attachment_list(drive_list):
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
-        for i in range(len(file_attach)):
+        for attachment in file_attach:
             sublist = []
-            k = file_attach[i] in drive_list
+            k = attachment in drive_list
             if k == True:
-                index = drive_list.index(file_attach[i])
+                index = drive_list.index(attachment)
                 del drive_list[index]
-                sublist.append(file_attach[i])
+                sublist.append(attachment)
                 sublist.append(sender[0])
                 sublist.append(sender[1])
                 sublist.append(date)
                 attach_list.append(sublist)
-                if file_attach[i] == "":
+                if attachment == "":
                     del sublist
             else:
                 if ind == last_ind:
