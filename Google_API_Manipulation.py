@@ -94,7 +94,7 @@ def delete_file(file_id):
     
     try:
         drive_service.files().delete(fileId=file_id).execute()
-        print("Deleted %s (ID: %s)" % file_name, file_id)
+        print("Deleted file: ", file_name)
     except errors.HttpError, error:
         print("An error occurred: %s" % error)    
 
@@ -611,7 +611,7 @@ def part_find(part):
                 return filename
     return filename
 
-def get_email_attachment_list():
+def get_email_attachment_list(dl_list):
     """Gets a list of attachments from Google Drive. 
     It only looks at emails in the inbox with the label "New".
     
@@ -639,7 +639,9 @@ def get_email_attachment_list():
             sublist.append(sender[0])
             sublist.append(sender[1])
             sublist.append(date)
-            attach_list.append(sublist)
+            for i in range(len(dl_list)):
+                if attachment == dl_list[i]:
+                    attach_list.append(sublist)
             if attachment == "":
                 del sublist
             else:
@@ -653,8 +655,8 @@ def get_email_attachment_list():
             #break
         remove.append(ind)
         ind = ind + 1
-    for index in remove:
-        remove_label(remove[0])
+    # for index in remove:
+    #     remove_label(remove[0])
     return attach_list
 
 def find_source_from_email(email_string):
