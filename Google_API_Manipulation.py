@@ -93,6 +93,7 @@ def delete_file(file_id):
     
     try:
         drive_service.files().delete(fileId=file_id).execute()
+        print "File with file_id: ", file_id, "has been deleted."
     except errors.HttpError, error:
         print("An error occurred: %s" % error)    
 
@@ -150,9 +151,9 @@ def clean_folder(folder_id):
             break;
     
     if (delete == False):
-        print("No files found to remove from " + folder_name + " (ID: " + parent_id + ").")
+        print("No files found to remove from " + folder_name + " (" + parent_id + ").")
     else:
-        print("Finished cleaning folder from " + folder_name + "(ID: " + parent_id + ").")     
+        print("Finished cleaning folder from " + folder_name + "(" + parent_id + ").")     
    
 def rename_file(filename, newname):
     """Renames a file in Google Drive.
@@ -252,9 +253,9 @@ def dl_folder(folder_id):
         
     items = response.get('files', [])
     if (not items or files_exist == False):
-        print("No files found to download from " + folder_name + " (ID: " + parent_id + ").")
+        print("No files found to download from " + folder_name + " (" + parent_id + ").")
     else:
-        print("Finished downloading files from " + folder_name + " (ID: " + parent_id + ").")
+        print("Finished downloading files from " + folder_name + " (" + parent_id + ").")
         #print("List of Files:")
         #for item in items:
             #print("{0} ({1})".format(item['name'], item['id']))
@@ -302,9 +303,9 @@ def get_filenames_in_folder(folder_id):
         
     items = response.get('files', [])
     if (not items or files_exist == False):
-        print("No files found in " + folder_name + " (ID: " + parent_id + ").")
+        print("No files found in " + folder_name + " (" + parent_id + ").")
     else:
-        print("Finished retrieving file names from " + folder_name + " (ID: " + parent_id + ").")
+        print("Finished retrieving file names from " + folder_name + " (" + parent_id + ").")
         #print(file_list)
             
     return file_list
@@ -338,7 +339,7 @@ def find_file_id(filename):
     
     #If no matching files found
     if file_id == None:
-        print("File not found.")
+        print("File ", filename, " not found.")
         
     return file_id
 

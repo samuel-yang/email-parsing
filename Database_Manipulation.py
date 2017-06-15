@@ -42,12 +42,24 @@ class bst():
 
     # """Database build differs from source build in that it extracts cell formatting for certian conditions,
     # to test and see if cells are properly highlighted"""
-    def database_build(self, filename, root):
-         book = xlrd.open_workbook(filename, formatting_info = True)
-         sheet = book.sheet_by_index(0)
-         rownum = sheet.nrows #should be 10
-         colnum = sheet.ncols
-         for i in range(rownum-1):
+    def database_build(self, root, edate):
+        yesterday = edate - timedelta(days = 1)
+        filename = 'Data/Rates for ' + str(edate) + '.xls'
+        if not os.path.isfile(filename):
+            old_filename = 'Data/Rates for ' + str(yesterday) + '.xls'
+            if not os.path.isfile(old_filename):
+                book = xlwt.Workbook()
+                sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
+                book.save(filename)
+            else:
+                shutil.copy2(old_filename, filename)
+            print "new file made"
+
+        book = xlrd.open_workbook(filename, formatting_info = True)
+        sheet = book.sheet_by_index(0)
+        rownum = sheet.nrows #should be 10
+        colnum = sheet.ncols
+        for i in range(rownum-1):
             i = i + 1
             string = ''
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
@@ -150,9 +162,10 @@ class bst():
         self.to_database(root.l_child, templist)
         self.to_database(root.r_child, templist)
 
-    def write(self, root, filename):
+    def write(self, root, edate, upload_list):
         book = xlwt.Workbook()
         sheet = book.add_sheet("sheet")
+        filename = 'Data/Rates for ' + str(edate) + '.xls'
         final_list = []
         length = 10 #lenght of provider list - 2 (hash key and change value)
         self.to_database(root, final_list)
@@ -181,7 +194,14 @@ class bst():
         sheet.set_panes_frozen(True)
         sheet.set_horz_split_pos(1)
         book.save(filename)
-        print "Successfully written"
+
+        for x in range(len(upload_list)):
+            if str(edate) == upload_list[x]:
+                return 'Succesfully written. Data for ', str(edate), 'has alredy been queued to upload.'
+
+        # """If edate isn't found already in list, add it to list to upload"""
+        upload_list.append(str(edate))
+        return 'Successfully written. Data for ', str(edate), 'is now queued to upload.'
 
  
 """Convert class performs all file conversions"""
