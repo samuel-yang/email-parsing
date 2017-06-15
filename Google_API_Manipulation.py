@@ -14,7 +14,7 @@ except ImportError:
 
 # If modifying these scopes, delete your previously saved credentials
 # at googleapis.com-python.json
-SCOPES = 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/gmail.readonly'
+SCOPES = 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Rates'
 
@@ -605,43 +605,37 @@ def part_find(part):
                 return filename
     return filename
 
-def get_email_attachment_list(drive_list):
-    """Gets a list of attachments using a list of file names from Google Drive.
+def get_email_attachment_list():
+    """Gets a list of attachments from Google Drive. 
+    It only looks at emails in the inbox with the label "New".
     
-    Args:
-        drive_list: list of file names from the Google Drive.
-        
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
-    label_ids=["INBOX"]
+    label_ids=["INBOX", "Label_2"]
     gmail_service = initialize_gmail_service()
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
     ind = 0
-    last_ind = (len(messages) - 1)
+    last_ind = len(messages)
     file_attach = []
     attach_list = []
     loop_break = True
-    while(len(drive_list) > 0) or ind != last_ind:
+    while (ind < last_ind):
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
         for attachment in file_attach:
             sublist = []
-            k = attachment in drive_list
-            if k == True:
-                index = drive_list.index(attachment)
-                del drive_list[index]
-                sublist.append(attachment)
-                sublist.append(sender[0])
-                sublist.append(sender[1])
-                sublist.append(date)
-                attach_list.append(sublist)
-                if attachment == "":
-                    del sublist
+            sublist.append(attachment)
+            sublist.append(sender[0])
+            sublist.append(sender[1])
+            sublist.append(date)
+            attach_list.append(sublist)
+            if attachment == "":
+                del sublist
             else:
                 if ind == last_ind:
                     break
