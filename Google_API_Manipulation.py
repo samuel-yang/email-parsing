@@ -722,6 +722,8 @@ def move_to_dayfolder(filename,datetime_obj):
         create_folder(folder_name)
         folder_id=find_file_id(folder_name)
     move_to_folder(filename,folder_id)
+    folder_id_main=find_file_id("Files")
+    move_to_folder(folder_name,folder_id_main)
 
 def main():
     drive_service = initialize_drive_service()
