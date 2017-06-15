@@ -90,10 +90,11 @@ def delete_file(file_id):
         file_id: ID of the file to delete. 
       """       
     drive_service = initialize_drive_service()
+    file_name = find_file_name(file_id)
     
     try:
         drive_service.files().delete(fileId=file_id).execute()
-        print "File with file_id: ", file_id, "has been deleted."
+        print("Deleted %s (ID: %s)" % file_name, file_id)
     except errors.HttpError, error:
         print("An error occurred: %s" % error)    
 
@@ -121,7 +122,7 @@ def clean_folder(folder_id):
             file_id = file.get('id')
             file_name_full = file.get('name')
             
-            print("Deleted Google file: %s (ID: %s)" % (file_name_full, file_id))
+            #print("Deleted Google file: %s (ID: %s)" % (file_name_full, file_id))
             delete_file(file_id)
             delete = True
                 
@@ -142,7 +143,7 @@ def clean_folder(folder_id):
             extension = file.get('name').split(".")[-1]
             
             if (extension != 'xls') and (extension != 'xlsx') and (extension != 'csv') and (extension != 'pdf'):
-                print("Deleted file: %s (ID: %s)" % (file_name_full, file_id))
+                #print("Deleted file: %s (ID: %s)" % (file_name_full, file_id))
                 delete_file(file_id)
                 delete = True
                 
@@ -151,9 +152,9 @@ def clean_folder(folder_id):
             break;
     
     if (delete == False):
-        print("No files found to remove from " + folder_name + " (" + parent_id + ").")
+        print("No files found to remove from " + folder_name + " (ID: " + parent_id + ").")
     else:
-        print("Finished cleaning folder from " + folder_name + "(" + parent_id + ").")     
+        print("Finished cleaning folder from " + folder_name + " (ID: " + parent_id + ").")     
    
 def rename_file(filename, newname):
     """Renames a file in Google Drive.
@@ -253,9 +254,9 @@ def dl_folder(folder_id):
         
     items = response.get('files', [])
     if (not items or files_exist == False):
-        print("No files found to download from " + folder_name + " (" + parent_id + ").")
+        print("No files found to download from " + folder_name + " (ID: " + parent_id + ").")
     else:
-        print("Finished downloading files from " + folder_name + " (" + parent_id + ").")
+        print("Finished downloading files from " + folder_name + " (ID: " + parent_id + ").")
         #print("List of Files:")
         #for item in items:
             #print("{0} ({1})".format(item['name'], item['id']))
@@ -339,7 +340,7 @@ def find_file_id(filename):
     
     #If no matching files found
     if file_id == None:
-        print("File ", filename, " not found.")
+        print("File \"%s\" not found." % filename)
         
     return file_id
 
