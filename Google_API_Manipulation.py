@@ -14,7 +14,7 @@ except ImportError:
 
 # If modifying these scopes, delete your previously saved credentials
 # at googleapis.com-python.json
-SCOPES = 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/gmail.readonly'
+SCOPES = 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Rates'
 
@@ -90,10 +90,11 @@ def delete_file(file_id):
         file_id: ID of the file to delete. 
       """       
     drive_service = initialize_drive_service()
+    file_name = find_file_name(file_id)
     
     try:
         drive_service.files().delete(fileId=file_id).execute()
-        print "File with file_id: ", file_id, "has been deleted."
+        print("Deleted %s (ID: %s)" % file_name, file_id)
     except errors.HttpError, error:
         print("An error occurred: %s" % error)    
 
@@ -121,7 +122,7 @@ def clean_folder(folder_id):
             file_id = file.get('id')
             file_name_full = file.get('name')
             
-            print("Deleted Google file: %s (ID: %s)" % (file_name_full, file_id))
+            #print("Deleted Google file: %s (ID: %s)" % (file_name_full, file_id))
             delete_file(file_id)
             delete = True
                 
@@ -142,7 +143,7 @@ def clean_folder(folder_id):
             extension = file.get('name').split(".")[-1]
             
             if (extension != 'xls') and (extension != 'xlsx') and (extension != 'csv') and (extension != 'pdf'):
-                print("Deleted file: %s (ID: %s)" % (file_name_full, file_id))
+                #print("Deleted file: %s (ID: %s)" % (file_name_full, file_id))
                 delete_file(file_id)
                 delete = True
                 
@@ -151,9 +152,9 @@ def clean_folder(folder_id):
             break;
     
     if (delete == False):
-        print("No files found to remove from " + folder_name + " (" + parent_id + ").")
+        print("No files found to remove from " + folder_name + " (ID: " + parent_id + ").")
     else:
-        print("Finished cleaning folder from " + folder_name + "(" + parent_id + ").")     
+        print("Finished cleaning folder from " + folder_name + " (ID: " + parent_id + ").")     
    
 def rename_file(filename, newname):
     """Renames a file in Google Drive.
@@ -253,9 +254,9 @@ def dl_folder(folder_id):
         
     items = response.get('files', [])
     if (not items or files_exist == False):
-        print("No files found to download from " + folder_name + " (" + parent_id + ").")
+        print("No files found to download from " + folder_name + " (ID: " + parent_id + ").")
     else:
-        print("Finished downloading files from " + folder_name + " (" + parent_id + ").")
+        print("Finished downloading files from " + folder_name + " (ID: " + parent_id + ").")
         #print("List of Files:")
         #for item in items:
             #print("{0} ({1})".format(item['name'], item['id']))
@@ -339,8 +340,7 @@ def find_file_id(filename):
     
     #If no matching files found
     if file_id == None:
-        print("File ", filename, " not found.")
-        
+        print("File \"%s\" not found." % filename)
     return file_id
 
 def find_file_name(file_id):
@@ -474,6 +474,7 @@ def upload_as_gsheet(file_to_upload, filename):
         
 def get_email(ind):
     """Gets an email message resource from the Gmail inbox.
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -481,8 +482,9 @@ def get_email(ind):
     Returns:
         mail, an email resource.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX", "Label_2"]
+    
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     #messages is the list of messages 
     messages = results['messages']
@@ -491,6 +493,7 @@ def get_email(ind):
 
 def get_email_date(ind):
     """Gets the date of an email message from the Gmail inbox.
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -498,8 +501,8 @@ def get_email_date(ind):
     Returns:
         date, the date of the email.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX", "Label_2"]    
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
@@ -514,6 +517,7 @@ def get_email_date(ind):
 
 def get_email_sender(ind):
     """Gets the sender of an email message from the Gmail inbox.
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -521,8 +525,8 @@ def get_email_sender(ind):
     Returns:
         sender, the source of an email and the email address.
     """         
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
+    label_ids = ["INBOX", "Label_2"]
     sender = []
     info = ""
     
@@ -544,6 +548,7 @@ def get_email_sender(ind):
 
 def get_email_attachment(ind):
     """Gets the name of an attachment of an email message from the Gmail inbox.
+    It only looks at emails in the inbox with the label "New".
     
     Args:
         ind: index of the email.
@@ -551,10 +556,10 @@ def get_email_attachment(ind):
     Returns:
         file, a list containing the file name of the attachment of an email.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
-    
+    label_ids = ["INBOX", "Label_2"]
     file = []
+    
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id']).execute()
@@ -585,7 +590,7 @@ def part_id(part):
             return filename
 
 def part_find(part):
-    '''Recursive method that finds file name of an attachment using partId, looking through parts
+    '''Recursive method that finds file name of an attachment using partId, looking through parts.
     
     Args:
         part: dictionary "part" of the email.
@@ -606,43 +611,37 @@ def part_find(part):
                 return filename
     return filename
 
-def get_email_attachment_list(drive_list):
-    """Gets a list of attachments using a list of file names from Google Drive.
+def get_email_attachment_list():
+    """Gets a list of attachments from Google Drive. 
+    It only looks at emails in the inbox with the label "New".
     
-    Args:
-        drive_list: list of file names from the Google Drive.
-        
     Returns:
         attach_list, a list of lists with each sublist containing the file name, source, email address, and date sent.
     """
-    label_ids=["INBOX"]
     gmail_service = initialize_gmail_service()
-    
+    label_ids = ["INBOX", "Label_2"]
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
     messages = results['messages']
     
     ind = 0
-    last_ind = (len(messages) - 1)
+    last_ind = len(messages)
     file_attach = []
     attach_list = []
+    remove = []    
     loop_break = True
-    while(len(drive_list) > 0) or ind != last_ind:
+    while (ind < last_ind):
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
         for attachment in file_attach:
             sublist = []
-            k = attachment in drive_list
-            if k == True:
-                index = drive_list.index(attachment)
-                del drive_list[index]
-                sublist.append(attachment)
-                sublist.append(sender[0])
-                sublist.append(sender[1])
-                sublist.append(date)
-                attach_list.append(sublist)
-                if attachment == "":
-                    del sublist
+            sublist.append(attachment)
+            sublist.append(sender[0])
+            sublist.append(sender[1])
+            sublist.append(date)
+            attach_list.append(sublist)
+            if attachment == "":
+                del sublist
             else:
                 if ind == last_ind:
                     break
@@ -652,8 +651,10 @@ def get_email_attachment_list(drive_list):
             break
         #if loop_break == False:
             #break
+        remove.append(ind)
         ind = ind + 1
-        
+    for index in remove:
+        remove_label(remove[0])
     return attach_list
 
 def find_source_from_email(email_string):
@@ -728,6 +729,19 @@ def move_to_day_folder(filename, datetime_obj, foldername):
     move_to_folder(filename, folder_id)
     folder_id_main = find_file_id(foldername)
     move_to_folder(folder_name, folder_id_main)
+
+def remove_label(ind):
+    """Removes the "New" label.
+
+    Args:
+        ind: Index of the message from which the attachments have been pulled.
+    """
+    gmail_service = initialize_gmail_service()
+    label_id = ["INBOX", "Label_2"]
+    
+    results = gmail_service.users().messages().list(userId='me', labelIds=label_id).execute()
+    messages = results['messages']
+    mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ["Label_2"]}).execute()
 
 def main():
     drive_service = initialize_drive_service()
