@@ -25,7 +25,6 @@ def monty(filename, root, database, source, edate):
         return 'No rate in document.'    
     bst().source_build(root, filename2) 
     status = bst().write(root, database)   
-    # file_clean(filename)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -33,6 +32,46 @@ def monty(filename, root, database, source, edate):
     newname = short + ' ' + str(edate) + ext
     # rename_file(filename, newname)
     # move_to_processed(filename)
+    # file_clean(filename)    
+    return status
+
+# """Support to delete first row"""
+def silverstreet(filename, root, source, edate, upload_list):
+    book = xlrd.open_workbook(filename, 'rb')
+    sheet = book.sheet_by_index(0)
+    # """Check is to see if thit contains a random row value and modify it"""
+    if sheet.cell(1,1).value == 'Catch all':
+        new_book = xlwt.Workbook()
+        sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True)
+        rownum = sheet.nrows
+        colnum = sheet.ncols
+        for i in range(rownum):
+            for j in range(colnum):
+                if i == 0:
+                    value = sheet.cell(i,j).value
+                    sheet_wr.write(i,j,value)
+                elif i > 1 and i < rownum:
+                    value = sheet.cell(i,j).value
+                    sheet_wr.write(i-1,j,value)
+                else:
+                    pass
+        new_book.save(filename)
+
+    bst().database_build(root, edate)
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'
+    bst().source_build(root, filename1)
+    status = bst().write(root, edate, upload_list)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    # rename_file(filename, newname)
+    # move_to_day_folder(neswname, edate, 'Processed')
+    file_clean(filename)
     return status
 
 # """Tata"""
@@ -43,7 +82,6 @@ def tata(filename, root, database, source, edate):
         return 'No rate in document.'    
     bst().source_build(root, filename1)
     status = bst().write(root, database)
-    # file_clean(filename)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -51,11 +89,12 @@ def tata(filename, root, database, source, edate):
     newname = short + ' ' + str(edate) + ext
     # rename_file(filename, newname)
     # move_to_processed(filename)
+    # file_clean(filename)
     return status
 
 # """Tedexis"""
 def tedexis(filename, root, source, edate, upload_list):
-    bst.database_build(root, edate)
+    bst().database_build(root, edate)
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
         move_to_noRates(filename)
@@ -63,7 +102,6 @@ def tedexis(filename, root, source, edate, upload_list):
     filename2 = format().excel_filter(filename1)
     bst().source_build(root, filename2)
     status = bst().write(root, edate, upload_list)
-    # file_clean(filename)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -71,6 +109,7 @@ def tedexis(filename, root, source, edate, upload_list):
     newname = short + ' ' + str(edate) + ext
     # rename_file(filename, newname)
     # move_to_processed(filename)
+    # file_clean(filename)
     return status
 
 # """General Use Case"""
@@ -83,7 +122,6 @@ def general(filename, root, source, edate, upload_list):
         return 'No rate in document.'
     bst().source_build(root, filename1)
     status = bst().write(root, edate, upload_list)
-    # file_clean(filename)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -91,6 +129,7 @@ def general(filename, root, source, edate, upload_list):
     newname = short + ' ' + str(edate) + ext
     # rename_file(filename, newname)
     # move_to_day_folder(neswname, edate, 'Processed')
+    file_clean(filename)
     return status
 
 
@@ -108,7 +147,7 @@ def main():
     #     print "new file made"
 
     general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom']
-    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications']
+    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet']
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
@@ -137,22 +176,26 @@ def main():
                 print "Status of: ", file_to_process[0], ' is: ', status
                 processed = True
             # """Special use case scenario"""
-            elif j <= len(special_dictionary):
+            elif j in range(len(special_dictionary)):
                 # """Tedexis"""
-                if file_to_process[1] == special_dictionary[0]:
+                if file_to_process[1] == special_dictionary[j] and j == 0:
                     status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print "Status of: ", file_to_process[0], ' is: ', status
                     processed = True                
                 # """Monty Mobile"""
-                elif file_to_process[1] == special_dictionary[1]:
+                elif file_to_process[1] == special_dictionary[j] and j == 1:
                     status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
                 # """Tata Communications"""
-                elif file_to_process[1] == special_dictionary[2]:
+                elif file_to_process[1] == special_dictionary[j] and j == 2:
                     status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
+                # """Silverstreet"""
+                elif file_to_process[1] == special_dictionary[j] and j == 3:
+                    status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
                 # """Not special case"""
                 else:
                     pass

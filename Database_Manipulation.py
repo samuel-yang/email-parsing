@@ -53,7 +53,7 @@ class bst():
                 book.save(filename)
             else:
                 shutil.copy2(old_filename, filename)
-            print "new file made"
+            print "New file made: ", filename
 
         book = xlrd.open_workbook(filename, formatting_info = True)
         sheet = book.sheet_by_index(0)
@@ -522,9 +522,11 @@ def file_clean(filename):
     index = filename.rfind('.')
     short = filename[:index]
     if os.path.isfile(short + '.xls'):
+        print "removed it as an xls"
         os.remove(short + '.xls')
 
     if os.path.isfile(short + '.xlsx'):
+        print "trying to remove as xlsx"
         os.remove(short + '.xlsx')
 
     if os.path.isfile(short + '.csv'):
