@@ -690,7 +690,7 @@ def convert_date(date):
     date = date[start:end+len(find)].strip()
     date_format = "%d %b %Y"
     date_obj = datetime.datetime.strptime(date, date_format)
-    return date_obj
+    return date_obj.date()
 
 def main():
     drive_service = initialize_drive_service()
