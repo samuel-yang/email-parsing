@@ -152,6 +152,7 @@ def main():
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
 
+    # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
     upload_list = []
     
