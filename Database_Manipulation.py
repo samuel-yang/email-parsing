@@ -298,7 +298,7 @@ class format():
 
     # """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
     #   correctly ordered.  takes in filename as string, returns new filename."""
-    def excel_format(self, filename, source, sheetindex):
+    def excel_format(self, filename, source, sheetindex, edate):
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(sheetindex)
         new_book = xlwt.Workbook()
@@ -352,21 +352,21 @@ class format():
                         sheet_wr.write(x-row,1,value[1])
                 # """MCC"""
                 elif sheet.cell(row,y).value in column_dictionary[3][column_list[3]]:
-                    # mcc_absent=False
+                    mcc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         mcc_val.append(value)
                         sheet_wr.write(x-row,2,value)
                 # """MNC"""
                 elif sheet.cell(row,y).value in column_dictionary[4][column_list[4]]:
-                    # mnc_absent=False
+                    mnc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         mnc_val.append(value)
                         sheet_wr.write(x-row,3,value)
                 # """MCCMNC"""
                 elif sheet.cell(row,y).value in column_dictionary[5][column_list[5]]:
-                    # mccmnc_absent=False
+                    mccmnc_absent=False
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
                         mccmnc_val.append(value)
@@ -416,7 +416,7 @@ class format():
                                 converted = value
                             sheet_wr.write(x-row,7,converted)
                             sheet_wr.write(x-row,8,source)
-                            sheet_wr.write(x-row,9,tomorrow)                                
+                            sheet_wr.write(x-row,9,str(edate))                                
                 else:
                     pass
                 

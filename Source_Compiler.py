@@ -28,8 +28,8 @@ def monty(filename, root, database, source):
     file_clean(filename)
 
 # """Tata"""
-def tata(filename, root, database, source):
-    filename1 = format().excel_format(filename, source, 1)
+def tata(filename, root, database, source, edate):
+    filename1 = format().excel_format(filename, source, 1, edate)
     if filename1 == -1:
         move_to_noRates(filename)
         return 'No rate in document.'    
@@ -38,8 +38,8 @@ def tata(filename, root, database, source):
     file_clean(filename)
 
 # """Tedexis"""
-def tedexis(filename, root, database, source):
-    filename1 = format().excel_format(filename, source, 0)
+def tedexis(filename, root, database, source, edate):
+    filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
         move_to_noRates(filename)
         return 'No rate in document.'
@@ -50,14 +50,14 @@ def tedexis(filename, root, database, source):
 
 # """General Use Case"""
 # support for C3ntro, Mitto, MMD, UPM, Wavecell
-def general(filename, root, database, source):
-    filename1 = format().excel_format(filename, source, 0)
+def general(filename, root, database, source, edate):
+    filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
         move_to_noRates(filename)
         return 'No rate in document.'
     bst().source_build(root, filename1)
     bst().write(root, database)
-    file_clean(filename)
+    # file_clean(filename)
     # move_to_processed(filename)
 
 
@@ -66,32 +66,40 @@ def general(filename, root, database, source):
 def main():
     # """Defining dates for use in methods"""
     today = str(date.today())[-5:]
-    tomo = date.today() + timedelta(days = 1)
-    tomorrow = str(tomo)[-5:]
-    yester = date.today() - timedelta(days = 1)
-    yesterday = str(yester)[-5:]
+    tomorrow_ = date.today() + timedelta(days = 1)
+    tomorrow = str(tomorrow_)[-5:]
+    yesterday_ = date.today() - timedelta(days = 1)
+    yesterday = str(yesterday_)[-5:]
     database = 'Data/Rates for ' + today + '.xls'
 
     if not os.path.isfile(database):
         old_database = 'Data/Rates for ' + yesterday + '.xls'
-        shutil.copy2(old_database, database)
+        if not os.path.isfile(old_database):
+        	book = xlwt.Workbook()
+        	sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
+        	book.save(database)
+        else:
+        	shutil.copy2(old_database, database)
         print "new file made"
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
 
-    # company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    company_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
     # print company_list
-    # temp_list = get_email_attachment_list(company_list)
+    full_list = get_email_attachment_list(company_list)
     # print temp_list
+    temp_list = full_list.pop()
+    edate_today = temp_list[3]
+    edate_tomorrow = edate_today + timedelta(days = 1)
     # temp = temp_list.pop()
     # temp = company_list.pop()
-    temp = '20170421 - Tedexis_Pricing_List_PREMIUM.xlsx'
+    # temp = '20170421 - Tedexis_Pricing_List_PREMIUM.xlsx'
     # emaildate = temp[3]
     bst().database_build(database, header)
-    status = tedexis(temp, header, database, 'Tedexis')
+    status = general(temp_list[0], header, database, temp_list[1], edate_tomorrow)
     # status = general(temp[0], header, database, 'Openmarket')
-    print status
+    # print status
 
 
 if __name__ == '__main__':
