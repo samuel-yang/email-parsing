@@ -284,17 +284,20 @@ class format():
                         {'MCCMNC': ['MCCMNC', 'Network code', 'IMSI']},
                         ({'Rate': ['Rate', 'Price', 'New Price', 'New Price(Euro)', 'Price Euro', 'New Price EUR', 
                             'New Price (EUR)', 'Price \nEUR/SMS', 'New Price (USD)', 'Rate - USD', 'Price in GBP',
-                            'Price in AUD', 'Price in EUR']}))
+                            'Price in AUD', 'Price in EUR', 'GW0', 'GW111']}))
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
 
     currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
                             {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS', 'Price in EUR']},
                             {'GBP': ['Price in GBP']},
-                            {'AUD': ['Price in AUD']})
+                            {'CNY': []},
+                            {'MXN': []},
+                            {'AUD': ['Price in AUD']},
+                            {'GW': ['GW0', 'GW111']})
 
     # """Support only exists for USD, EUR right now, need to define dictionary for others"""
-    currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN', 'AUD']
+    currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN', 'AUD', 'GW']
 
     # """ excel_filter takes and removes empty rows from a FORMATTED document """
     def excel_filter(self, filename):
@@ -432,11 +435,17 @@ class format():
                             pass
                         else:
                             sheet_wr.write(x-row,5,value)
-                            sheet_wr.write(x-row,6,currency_list[i])
-                            if not currency_list[i] == 'USD':
+                            if currency_list[i] == 'GW':
+                                currency = 'USD'
+                                # """Adjust converted value - for GW0 and GW111"""
+                                converted = float(str(value)[-4:])
+                            elif not currency_list[i] == 'USD':
+                                currency = currency_list[i]
                                 converted = currency_rate[i]*float(value)
                             else:
+                                currency = currency_list[i]
                                 converted = value
+                            sheet_wr.write(x-row,6,currency)
                             sheet_wr.write(x-row,7,converted)
                             sheet_wr.write(x-row,8,source)
                             sheet_wr.write(x-row,9,str(edate_effective))                                
@@ -449,13 +458,19 @@ class format():
         if mcc_absent == False and mnc_absent==False and mccmnc_absent==True:
             for i in range(1,len(mcc_val)):
                 if "," not in str(mnc_val[i]) and "/" not in str(mnc_val[i]):
-                    ind1=str(mcc_val[i]).index(".")
-                    ind2=str(mnc_val[i]).index(".")
-                    val=str(mnc_val[i])[:ind2]
-                    if len(val)==1:
-                        val="0"+val
-                    value=str(mcc_val[i])[:ind1]+val                  
-                    sheet_wr.write(i,4,value)
+                    ind1=str(mcc_val[i]).rfind(".")
+                    ind2=str(mnc_val[i]).rfind(".")
+                    if ind1 != -1 and ind2 != -1:
+                        val=str(mnc_val[i])[:ind2]
+                        if len(val)==1:
+                            val="0"+val
+                        value=str(mcc_val[i])[:ind1]+val                  
+                        sheet_wr.write(i,4,value)
+                    else:
+                        val1 = str(mcc_val[i])
+                        val2 = str(mnc_val[i])
+                        value = val1 + val2
+                        sheet_wr.write(i,4,value)
                 else:
                     value=""
                     sheet_wr.write(i,4,value)
