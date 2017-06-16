@@ -27,9 +27,13 @@ def get_credentials():
     Returns:
         Credentials, the obtained credential.
     """
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    credential_path = os.path.join(dir_path,
-                                   'googleapis.com-python.json')
+    
+    home_dir = os.path.expanduser('~')
+    credential_dir = os.path.join(home_dir, '.credentials')
+    if not os.path.exists(credential_dir):
+        os.makedirs(credential_dir)
+    credential_path = os.path.join(credential_dir,
+                                   'googleapis.com-python-quickstart.json')
 
     store = Storage(credential_path)
     credentials = store.get()

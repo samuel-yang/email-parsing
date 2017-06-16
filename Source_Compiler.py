@@ -215,8 +215,11 @@ def main():
                     pass
             # """Case not yet tested:::
         if not processed:
-            print ('The file: ', file_to_process[0], ' is currently not supported.  Source of file is: ', 
-                file_to_process[1], '. Contact the developer to build support for this document.')
+            file_source = file_to_process[1]
+            if file_to_process[1] == None:
+                file_source = 'None'
+            print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
+                   '. Contact the developer to build support for this document.')
 
     print '\nNow uploading compiled data flies'
     for i in range(len(upload_list)):
