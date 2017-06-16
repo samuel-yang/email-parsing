@@ -16,8 +16,15 @@ sys.setdefaultencoding('utf-8')
 # filename = 'UPM_SMSR-1_HOOK MOBILE_USD_2017-06-12 FORMATTED.xls'
 # filename = 'Test.xls'
 
+# """CLX Networks"""
+def clx(filename, root, source, edate, upload_list):
+    filename1 = convert().excel_tsv_to_csv(filename)
+    filename2 = convert().csv_to_excel(filename1)
+    filename3 = format().excel_format(filename2, source, 0, edate)
+
+
 # """Monty Mobile"""
-def monty(filename, root, database, source, edate):
+def monty(filename, root, source, edate, upload_list):
     filename1 = convert().csv_to_excel(filename)
     filename2 = format().excel_format(filename1, source, 0, edate)
     if filename2 == -1:
@@ -129,7 +136,7 @@ def general(filename, root, source, edate, upload_list):
     newname = short + ' ' + str(edate) + ext
     # rename_file(filename, newname)
     # move_to_day_folder(neswname, edate, 'Processed')
-    file_clean(filename)
+    # file_clean(filename)
     return status
 
 
@@ -147,7 +154,7 @@ def main():
     #     print "new file made"
 
     general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom']
-    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet']
+    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks']
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     header = bst().node(title[0], title)
@@ -164,6 +171,8 @@ def main():
 
     company_list = get_email_attachment_list(dl_list)
     print "Email attachment list is: ", company_list 
+    if len(company_list) != len(dl_list):
+        print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
 
     for i in range(len(company_list)):
         file_to_process = company_list.pop()
@@ -196,6 +205,10 @@ def main():
                 # """Silverstreet"""
                 elif file_to_process[1] == special_dictionary[j] and j == 3:
                     status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
+                # """CLX Networks"""
+                elif file_to_process[1] == special_dictionary[j] and j == 4:
+                    status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                 # """Not special case"""
                 else:
