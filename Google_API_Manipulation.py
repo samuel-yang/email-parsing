@@ -13,7 +13,7 @@ except ImportError:
     flags = None
 
 # If modifying these scopes, delete your previously saved credentials
-# at googleapis.com-python.json
+# at ~/.credentials/googleapis.com-python.json
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify'
 CLIENT_SECRET_FILE = 'client_secret.json'
 APPLICATION_NAME = 'Rates'
@@ -23,6 +23,7 @@ def get_credentials():
 
     If nothing has been stored, or if the stored credentials are invalid,
     the OAuth2 flow is completed to obtain the new credentials.
+    The credentials are saved at the directory ~/.credentials/googleapis.com-python.json
 
     Returns:
         Credentials, the obtained credential.
