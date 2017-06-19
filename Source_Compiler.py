@@ -47,7 +47,7 @@ def monty(filename, root, source, edate, upload_list):
         move_to_noRates(filename)
         return 'No rate in document.'    
     bst().source_build(root, filename2) 
-    status = bst().write(root, database)   
+    status = bst().write(root, edate, upload_list)   
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -219,10 +219,9 @@ def main():
                     processed = True                
                 # """Monty Mobile"""
                 elif file_to_process[1] == special_dictionary[j] and j == 1:
-                    pass
-                    # status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
-                    # print 'Status of: ', file_to_process[0], ' is: ', status
-                    # processed = True
+                    status = monty(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """Tata Communications"""
                 elif file_to_process[1] == special_dictionary[j] and j == 2:
                     status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
