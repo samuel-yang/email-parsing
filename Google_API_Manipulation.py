@@ -630,7 +630,7 @@ def get_email_attachment_list(dl_list):
         messages = results['messages']
     else:
         messages=[]
-        print "No 'New' messages"
+        print "No 'New' messages in the Inbox"
     
     ind = 0
     last_ind = len(messages)
