@@ -436,9 +436,9 @@ class format():
                         else:
                             sheet_wr.write(x-row,5,value)
                             if currency_list[i] == 'GW':
-                                currency = 'USD'
+                                currency = 'USD'      
                                 # """Adjust converted value - for GW0 and GW111"""
-                                converted = float(str(value)[-4:])
+                                converted = float(str(value)[-4:])/10000
                             elif not currency_list[i] == 'USD':
                                 currency = currency_list[i]
                                 converted = currency_rate[i]*float(value)
