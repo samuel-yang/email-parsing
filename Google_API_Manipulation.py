@@ -725,6 +725,8 @@ def move_to_day_folder(filename, datetime_obj, parent_name):
     """Organizes the files according to their respective "day" folders and 
     places the day folder into the parent folder. If a day folder does not 
     exist, it will be created.
+    
+    Only looks at files in the "Files" folder.
 
     Args:
         filename: string of the name of the file to move.
@@ -732,14 +734,77 @@ def move_to_day_folder(filename, datetime_obj, parent_name):
         parent_name: string of the name of the parent folder.
 
     """
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c')
+    
     folder_name = str(datetime_obj)
     folder_id = find_file_id(folder_name)
     if folder_id == None:
         create_folder(folder_name)
         folder_id = find_file_id(folder_name)
-    move_to_folder(filename, folder_id)
+    move_to_folder_using_id(file_id, folder_id)
     parent_id = find_file_id(parent_name)
     move_to_folder(folder_name, parent_id)
+
+def find_file_id_using_parent(filename, parent_id):
+    """Gets file ID of a file in Google Drive using file name and parent ID.
+    
+    Assumes there is only one file with that name in the specified folder.
+    
+    Args:
+        filename: name of the file.
+        parent_id: ID of the parent.
+
+    Returns:
+        file_id, file ID of the file.
+    """    
+    drive_service = initialize_drive_service()   
+    file_id = None
+    page_token = None
+    
+    #Search for file by name to retrieve ID
+    while True:
+        response = drive_service.files().list(q= '"{0}" in parents and (name = "{1}")'.format(parent_id, filename), spaces='drive', 
+                                        fields='nextPageToken, files(id, name)', 
+                                        pageToken=page_token).execute()
+        for file in response.get('files', []):
+            # Process change
+            file_id = file.get('id')
+            page_token = response.get('nextPageToken', None)
+        if page_token is None:
+            break;    
+    
+    #If no matching files found
+    if file_id == None:
+        print("File \"%s\" not found." % filename)
+    return file_id
+
+def move_to_folder_using_id(file_id, folder_id):
+    """Moves a file to a folder in Google Drive.
+    
+    Args:
+        file_id: ID of the file to move.
+        folder_id: ID of the destination folder.
+    """    
+    drive_service = initialize_drive_service()      
+    filename = find_file_name(file_id)
+    parent_id = folder_id
+    folder_name = find_file_name(parent_id)
+    
+    try:
+        # Retrieve the existing parents to remove
+        file = drive_service.files().get(fileId=file_id,
+                                     fields='parents').execute();
+        previous_parents = ",".join(file.get('parents'))
+        # Move the file to the new folder
+        file = drive_service.files().update(fileId=file_id,
+                                        addParents=parent_id,
+                                        removeParents=previous_parents,
+                                        fields='id, parents').execute()
+        print("Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
+    except TypeError:
+        print("Could not find file to move.")    
+    except googleapiclient.errors.HttpError:
+        print("Invalid folder ID.")
 
 def remove_label(ind):
     """Removes the "New" label.
