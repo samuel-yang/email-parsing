@@ -37,8 +37,6 @@ def clx(filename, root, source, edate, upload_list):
     file_clean(filename)    
     return status
 
-
-
 # """Monty Mobile"""
 def monty(filename, root, source, edate, upload_list):
     filename1 = convert().csv_to_excel(filename)
