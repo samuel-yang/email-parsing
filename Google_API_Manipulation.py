@@ -717,7 +717,7 @@ def convert_date(date):
     date_obj = datetime.datetime.strptime(date, date_format)
     return date_obj.date()
 
-def move_to_day_folder(filename, datetime_obj, foldername):
+def move_to_day_folder(filename, datetime_obj, parent_name):
     """Organizes the files according to their respective "day" folders and 
     places the day folder into the parent folder. If a day folder does not 
     exist, it will be created.
@@ -725,7 +725,7 @@ def move_to_day_folder(filename, datetime_obj, foldername):
     Args:
         filename: string of the name of the file to move.
         datetime_obj: date of the email as date-time object.
-        foldername: string of the name of the parent folder.
+        parent_name: string of the name of the parent folder.
 
     """
     folder_name = str(datetime_obj)
@@ -734,8 +734,8 @@ def move_to_day_folder(filename, datetime_obj, foldername):
         create_folder(folder_name)
         folder_id = find_file_id(folder_name)
     move_to_folder(filename, folder_id)
-    folder_id_main = find_file_id(foldername)
-    move_to_folder(folder_name, folder_id_main)
+    parent_id = find_file_id(parent_name)
+    move_to_folder(folder_name, parent_id)
 
 def remove_label(ind):
     """Removes the "New" label.
