@@ -726,8 +726,8 @@ def get_email_attachment_list(dl_list):
             #break
         remove.append(ind)
         ind = ind + 1
-    # for index in remove:
-    #     remove_label(remove[0])
+    for index in remove:
+        remove_label(remove[0])
     return attach_list
 
 def find_source_from_email(email_string):
