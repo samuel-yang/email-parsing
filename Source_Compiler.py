@@ -18,11 +18,12 @@ sys.setdefaultencoding('utf-8')
 
 # """CLX Networks"""
 def clx(filename, root, source, edate, upload_list):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = convert().excel_tsv_to_csv(filename)
     filename2 = convert().csv_to_excel(filename1)
     filename3 = format().excel_format(filename2, source, 0, edate)
     if filename3 == -1:
-        move_to_noRates(filename)
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
     bst().source_build(root, filename3) 
     status = bst().write(root, edate, upload_list)   
@@ -31,18 +32,19 @@ def clx(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(filename, edate, 'Processed')
-    rename_file(filename, newname)
-    # move_to_processed(filename)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)    
     return status
 
 # """Monty Mobile"""
 def monty(filename, root, source, edate, upload_list):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = convert().csv_to_excel(filename)
     filename2 = format().excel_format(filename1, source, 0, edate)
     if filename2 == -1:
-        move_to_noRates(filename)
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
     bst().source_build(root, filename2) 
     status = bst().write(root, edate, upload_list)   
@@ -51,14 +53,15 @@ def monty(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # move_to_day_folder(filename, edate, 'Processed')
-    rename_file(filename, newname)
-    # move_to_processed(filename)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)    
     return status
 
 # """Support to delete first row"""
 def silverstreet(filename, root, source, edate, upload_list):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     book = xlrd.open_workbook(filename, 'rb')
     sheet = book.sheet_by_index(0)
     # """Check is to see if thit contains a random row value and modify it"""
@@ -82,7 +85,7 @@ def silverstreet(filename, root, source, edate, upload_list):
     bst().database_build(root, edate)
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
-        move_to_noRates(filename)
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
     bst().source_build(root, filename1)
     status = bst().write(root, edate, upload_list)
@@ -91,17 +94,18 @@ def silverstreet(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(filename, edate, 'Processed')
-    rename_file(filename, newname)
-    # move_to_day_folder(neswname, edate, 'Processed')
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_day_folder(newname, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     file_clean(filename)
     return status
 
 # """Tata"""
 def tata(filename, root, database, source, edate):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = format().excel_format(filename, source, 1, edate)
     if filename1 == -1:
-        move_to_noRates(filename)
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
     bst().source_build(root, filename1)
     status = bst().write(root, edate, upload_list)
@@ -110,18 +114,19 @@ def tata(filename, root, database, source, edate):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(filename, edate, 'Processed')
-    rename_file(filename, newname)
-    # move_to_processed(filename)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)
     return status
 
 # """Tedexis"""
 def tedexis(filename, root, source, edate, upload_list):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     bst().database_build(root, edate)
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
-        move_to_noRates(filename)
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
     filename2 = format().excel_filter(filename1)
     bst().source_build(root, filename2)
@@ -131,19 +136,21 @@ def tedexis(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(filename, edate, 'Processed')
-    rename_file(filename, newname)
-    # move_to_processed(filename)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)
     return status
 
 # """General Use Case"""
 # support for mmd, UPM, wavecell, mitto, monty, centro, tata, tedexis, bics, openmarket
 def general(filename, root, source, edate, upload_list):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    print(file_id)
     bst().database_build(root, edate)
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
-        move_to_noRates(filename)
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
     bst().source_build(root, filename1)
     status = bst().write(root, edate, upload_list)
@@ -152,9 +159,9 @@ def general(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(filename, edate, 'Processed')
-    rename_file(filename, newname)
-    # move_to_day_folder(newname, edate, 'Processed')
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_day_folder(newname, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     file_clean(filename)
     return status
 
@@ -243,18 +250,21 @@ def main():
                 file_source = 'None'
             print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
                    '. Contact the developer to build support for this document.')
-            move_to_day_folder(file_to_process[0], file_to_process[3], 'NotProcessed')
+            file_id = find_file_id_using_parent(file_to_process[0], '0BzlU44AWMToxZnh5ekJaVUJUc2c')
+	    print(file_id)
+            move_to_day_folder(file_id, file_to_process[3], '0BzlU44AWMToxOGtyYWZzSVAyNkE') # Moves to date folder in "NotProcessed"
             file_clean(file_to_process[0])
 
     print '\nNow uploading compiled data flies'
     for i in range(len(upload_list)):
         filename = upload_list.pop()
+	file_id = find_file_id(filename)
         filename = 'Rates for ' + filename + '.xls'
         to_delete = find_file_id(filename)
         if not to_delete == None:
             delete_file(to_delete)
         upload_as_gsheet('Data/' + filename, filename)
-        move_to_folder(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+        move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
 
     print "\nSource_Compiler has succesfully run to completion.\n\n\n"
 

@@ -726,8 +726,8 @@ def get_email_attachment_list(dl_list):
             #break
         remove.append(ind)
         ind = ind + 1
-    for index in remove:
-        remove_label(remove[0])
+    #for index in remove:
+        #remove_label(remove[0])
     return attach_list
 
 def find_source_from_email(email_string):
@@ -798,13 +798,20 @@ def move_to_day_folder(file_id, datetime_obj, parent_id):
     """
     file_name = find_file_name(file_id)
     
-    folder_name = str(datetime_obj)
+    if parent_id == '0BzlU44AWMToxeFhld1pfNWxDTWs':
+        folder_name = str(datetime_obj) + ' NR'
+    elif parent_id == '0BzlU44AWMToxOGtyYWZzSVAyNkE':
+        folder_name = str(datetime_obj) + ' NP'
+    elif parent_id == '0BzlU44AWMToxVU8ySkNBQzJQeFE':
+        folder_name = str(datetime_obj) + ' P'
+    else:
+        folder_name = str(datetime_obj) + ' N/A'
+    
     folder_id = find_file_id_using_parent(folder_name, parent_id)
     if folder_id == None:
         create_folder(folder_name)
-        folder_id = find_file_id_using_parent(folder_name, parent_id)
+        folder_id = find_file_id(folder_name)
     move_to_folder(file_id, folder_id)
-    parent_id = find_file_id(parent_name)
     move_to_folder(folder_id, parent_id)
 
 def move_to_day_folder_using_names(filename, datetime_obj, parent_name):
@@ -827,7 +834,7 @@ def move_to_day_folder_using_names(filename, datetime_obj, parent_name):
     folder_id = find_file_id_using_parent(folder_name, parent_id)
     if folder_id == None:
         create_folder(folder_name)
-        folder_id = find_file_id_using_parent(folder_name, parent_id)
+        folder_id = find_file_id_using_parent(folder_name, 'my-drive')
     move_to_folder(file_id, folder_id)
     move_to_folder_using_name(folder_name, parent_id)
 
