@@ -170,7 +170,11 @@ def main():
         print "\nDownload list is: ", dl_list
 
     company_list = get_email_attachment_list(dl_list)
-    print "Email attachment list is: ", company_list 
+    if company_list==None:
+	    company_list=[]
+	    print ("No 'New' messages in the Inbox")
+    else:
+        print "Email attachment list is: ", company_list 
     if len(company_list) != len(dl_list):
         print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
 

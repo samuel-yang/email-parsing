@@ -626,7 +626,11 @@ def get_email_attachment_list(dl_list):
     gmail_service = initialize_gmail_service()
     label_ids = ["INBOX", "Label_2"]
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
-    messages = results['messages']
+    if results['resultSizeEstimate']!=0:
+        messages = results['messages']
+    else:
+        messages=[]
+        print "No 'New' messages"
     
     ind = 0
     last_ind = len(messages)
