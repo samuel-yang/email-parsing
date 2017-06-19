@@ -21,6 +21,22 @@ def clx(filename, root, source, edate, upload_list):
     filename1 = convert().excel_tsv_to_csv(filename)
     filename2 = convert().csv_to_excel(filename1)
     filename3 = format().excel_format(filename2, source, 0, edate)
+    if filename3 == -1:
+        move_to_noRates(filename)
+        return 'No rate in document.'    
+    bst().source_build(root, filename3) 
+    status = bst().write(root, edate, upload_list)   
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    move_to_day_folder(filename, edate, 'Processed')
+    rename_file(filename, newname)
+    # move_to_processed(filename)
+    file_clean(filename)    
+    return status
+
 
 
 # """Monty Mobile"""
@@ -37,9 +53,10 @@ def monty(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # rename_file(filename, newname)
+    # move_to_day_folder(filename, edate, 'Processed')
+    rename_file(filename, newname)
     # move_to_processed(filename)
-    # file_clean(filename)    
+    file_clean(filename)    
     return status
 
 # """Support to delete first row"""
@@ -76,7 +93,8 @@ def silverstreet(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # rename_file(filename, newname)
+    move_to_day_folder(filename, edate, 'Processed')
+    rename_file(filename, newname)
     # move_to_day_folder(neswname, edate, 'Processed')
     file_clean(filename)
     return status
@@ -88,15 +106,16 @@ def tata(filename, root, database, source, edate):
         move_to_noRates(filename)
         return 'No rate in document.'    
     bst().source_build(root, filename1)
-    status = bst().write(root, database)
+    status = bst().write(root, edate, upload_list)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # rename_file(filename, newname)
+    move_to_day_folder(filename, edate, 'Processed')
+    rename_file(filename, newname)
     # move_to_processed(filename)
-    # file_clean(filename)
+    file_clean(filename)
     return status
 
 # """Tedexis"""
@@ -114,9 +133,10 @@ def tedexis(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # rename_file(filename, newname)
+    move_to_day_folder(filename, edate, 'Processed')
+    rename_file(filename, newname)
     # move_to_processed(filename)
-    # file_clean(filename)
+    file_clean(filename)
     return status
 
 # """General Use Case"""
@@ -134,9 +154,10 @@ def general(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # rename_file(filename, newname)
-    # move_to_day_folder(neswname, edate, 'Processed')
-    # file_clean(filename)
+    move_to_day_folder(filename, edate, 'Processed')
+    rename_file(filename, newname)
+    # move_to_day_folder(newname, edate, 'Processed')
+    file_clean(filename)
     return status
 
 
@@ -160,7 +181,7 @@ def main():
     header = bst().node(title[0], title)
 
     # """Folder ID is for Test Files Folder"""
-    dl_list = dl_folder('0BzlU44AWMToxNkdCVXEzWndLT1U')
+    dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
     upload_list = []
     
     if len(dl_list) == 0:
@@ -198,9 +219,10 @@ def main():
                     processed = True                
                 # """Monty Mobile"""
                 elif file_to_process[1] == special_dictionary[j] and j == 1:
-                    status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
+                    pass
+                    # status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    # print 'Status of: ', file_to_process[0], ' is: ', status
+                    # processed = True
                 # """Tata Communications"""
                 elif file_to_process[1] == special_dictionary[j] and j == 2:
                     status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
@@ -224,6 +246,8 @@ def main():
                 file_source = 'None'
             print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
                    '. Contact the developer to build support for this document.')
+            move_to_day_folder(file_to_process[0], file_to_process[3], 'NotProcessed')
+            file_clean(file_to_process[0])
 
     print '\nNow uploading compiled data flies'
     for i in range(len(upload_list)):
