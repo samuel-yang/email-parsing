@@ -101,7 +101,7 @@ def silverstreet(filename, root, source, edate, upload_list):
     return status
 
 # """Tata"""
-def tata(filename, root, database, source, edate):
+def tata(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = format().excel_format(filename, source, 1, edate)
     if filename1 == -1:
@@ -169,17 +169,7 @@ def general(filename, root, source, edate, upload_list):
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
 
-    # if not os.path.isfile(database):
-    #     old_database = 'Data/Rates for ' + yesterday + '.xls'
-    #     if not os.path.isfile(old_database):
-    #         book = xlwt.Workbook()
-    #         sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
-    #         book.save(database)
-    #     else:
-    #         shutil.copy2(old_database, database)
-    #     print "new file made"
-
-    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN']
+    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN', 'KDDI Global']
     special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks']
 
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
@@ -196,11 +186,13 @@ def main():
         print "\nDownload list is: ", dl_list
 
     company_list = get_email_attachment_list(dl_list)
+
     if company_list==None:
 	    company_list=[]
 	    print ("No 'New' messages in the Inbox")
     else:
         print "Email attachment list is: ", company_list 
+
     if len(company_list) != len(dl_list):
         print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
 
@@ -212,9 +204,13 @@ def main():
         for j in range(len(general_dictionary)):
             # """General use case scenario"""
             if file_to_process[1] == general_dictionary[j]:
-                status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
-                print "Status of: ", file_to_process[0], ' is: ', status
-                processed = True
+                index = file_to_process[0].rfind('.')
+                index = len(file_to_process[0]) - index
+                ext = file_to_process[0][-index:]
+                if ext == '.xls' or ext == '.xlsx':
+                    status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    print "Status of: ", file_to_process[0], ' is: ', status
+                    processed = True
             # """Special use case scenario"""
             elif j in range(len(special_dictionary)):
                 # """Tedexis"""
@@ -236,10 +232,12 @@ def main():
                 elif file_to_process[1] == special_dictionary[j] and j == 3:
                     status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """CLX Networks"""
                 elif file_to_process[1] == special_dictionary[j] and j == 4:
                     status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                     print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """Not special case"""
                 else:
                     pass
@@ -251,19 +249,19 @@ def main():
             print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
                    '. Contact the developer to build support for this document.')
             file_id = find_file_id_using_parent(file_to_process[0], '0BzlU44AWMToxZnh5ekJaVUJUc2c')
-	    print(file_id)
             move_to_day_folder(file_id, file_to_process[3], '0BzlU44AWMToxOGtyYWZzSVAyNkE') # Moves to date folder in "NotProcessed"
-            file_clean(file_to_process[0])
+            os.remove(file_to_process[0])
 
     print '\nNow uploading compiled data flies'
+
     for i in range(len(upload_list)):
         filename = upload_list.pop()
-	file_id = find_file_id(filename)
         filename = 'Rates for ' + filename + '.xls'
         to_delete = find_file_id(filename)
         if not to_delete == None:
             delete_file(to_delete)
         upload_as_gsheet('Data/' + filename, filename)
+        file_id = find_file_id(filename)
         move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
 
     print "\nSource_Compiler has succesfully run to completion.\n\n\n"
