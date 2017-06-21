@@ -10,12 +10,13 @@
     forex_python.converter - exchange rate converter
     Google_Drive_Manipulation - using the Google Dirve and Sheets API"""
 
-import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys
+import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, openpyxl
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
+from xlutils.copy import copy
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -42,45 +43,105 @@ class bst():
 
     # """Database build differs from source build in that it extracts cell formatting for certian conditions,
     # to test and see if cells are properly highlighted"""
-    def database_build(self, root, edate):
-        yesterday = edate - timedelta(days = 1)
-        filename = 'Data/Rates for ' + str(edate) + '.xls'
-        if not os.path.isfile(filename):
-            old_filename = 'Data/Rates for ' + str(yesterday) + '.xls'
-            if not os.path.isfile(old_filename):
-                book = xlwt.Workbook()
-                sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
-                book.save(filename)
-            else:
-                shutil.copy2(old_filename, filename)
-            print "New file made: ", filename
+    # def database_build(self, root, edate):
+    #     yesterday = edate - timedelta(days = 1)
+    #     filename = 'Data/Rates for ' + str(edate) + '.xls'
+    #     if not os.path.isfile(filename):
+    #         old_filename = 'Data/Rates for ' + str(yesterday) + '.xls'
+    #         if not os.path.isfile(old_filename):
+    #             book = xlwt.Workbook()
+    #             sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
+    #             book.save(filename)
+    #         else:
+    #             shutil.copy2(old_filename, filename)
+    #         print "New file made: ", filename
 
-        book = xlrd.open_workbook(filename, formatting_info = True)
-        sheet = book.sheet_by_index(0)
-        rownum = sheet.nrows #should be 10
-        colnum = sheet.ncols
+    #     book = xlrd.open_workbook(filename, formatting_info = True)
+    #     sheet = book.sheet_by_index(0)
+    #     rownum = sheet.nrows #should be 10
+    #     colnum = sheet.ncols
+    #     for i in range(rownum-1):
+    #         i = i + 1
+    #         string = ''
+    #         """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+    #         provider = [0]
+    #         for j in range(colnum):
+    #             provider.append(sheet.cell(i,j).value)
+    #             if j < 5:
+    #                 string = string + str(sheet.cell(i,j).value).encode("utf-8")
+    #             else:
+    #                 pass
+
+    #         provider[0] = hash(string)
+    #         provider.append(0)
+    #         if not provider[10] == today:
+    #             xfx = sheet.cell_xf_index(i, 7)
+    #             xf = book.xf_list[xfx]
+    #             bgx = xf.background.pattern_colour_index
+    #             ## RED = 10, GREEN = 17
+    #             if bgx == 10:
+    #                 provider[11] = 1
+    #             elif bgx ==17:
+    #                 provider[11] = -1
+
+    #         self.insert(root, self.node(provider[0], provider))
+
+    # """Database build NEW. downloads the latest rates sheet from the google drive, and extracts the information,
+    # to biuld from there.  If file not found, it pulls form the oldest possible version of the rates sheet"""
+
+    def database_build(self, root, edate):
+        filename = 'Rates for ' + str(edate)
+        # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
+        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+        print (file_id)
+        day_before = edate
+        days = 0
+        new_book = False
+        filename_old = filename
+
+        while(file_id == None):
+            print ("No file found")
+            day_before = day_before - timedelta(days = 1)
+            filename_old = 'Rates for ' + str(day_before)
+            file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+            days = days + 1
+            if days > 10:
+                print ("Completely New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
+                book = openpyxl.Workbook()
+                book.save(fileame + '.xlsx')
+                new_book = True
+                break
+
+        if not new_book:
+            export_sheet(file_id)
+
+        filename = filename_old + '.xlsx'
+        book = openpyxl.load_workbook(filename)
+        sheet = book.active
+        rownum = sheet.max_row
+        colnum = sheet.max_column
         for i in range(rownum-1):
             i = i + 1
             string = ''
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
             provider = [0]
             for j in range(colnum):
-                provider.append(sheet.cell(i,j).value)
-                if j < 5:
-                    string = string + str(sheet.cell(i,j).value).encode("utf-8")
+                provider.append(sheet.cell(row=i+1, column=j+1).value)
+                if j < 6:
+                    string = string + str(sheet.cell(row=i+1, column=j+1).value).encode("utf-8")
                 else:
                     pass
 
             provider[0] = hash(string)
             provider.append(0)
             if not provider[10] == today:
-                xfx = sheet.cell_xf_index(i, 7)
-                xf = book.xf_list[xfx]
-                bgx = xf.background.pattern_colour_index
-                ## RED = 10, GREEN = 17
-                if bgx == 10:
+                cell_fill = str(sheet.cell(row=i+1, column=8).fill)
+                index = cell_fill.rfind('rgb=')+4
+                color = cell_fill[index:index+10]
+                # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
+                if color == 'FFFF0000':
                     provider[11] = 1
-                elif bgx ==17:
+                elif color == 'FF008000':
                     provider[11] = -1
 
             self.insert(root, self.node(provider[0], provider))
@@ -165,7 +226,7 @@ class bst():
     def write(self, root, edate, upload_list):
         book = xlwt.Workbook()
         sheet = book.add_sheet("sheet")
-        filename = 'Data/Rates for ' + str(edate) + '.xls'
+        filename = 'Rates for ' + str(edate) + '.xls'
         final_list = []
         length = 10 #lenght of provider list - 2 (hash key and change value)
         self.to_database(root, final_list)
@@ -177,12 +238,12 @@ class bst():
                     # price increased
                     if provider[11] == 1:
                         st = xlwt.easyxf('pattern: pattern solid, fore_color red;')
-                        sheet.write(x,k,provider[k+1],st)
+                        sheet.write(x,k,float(provider[k+1]),st)
                         # print "marker 1"
                     # price decreased
                     elif provider[11] == -1:
                         st = xlwt.easyxf('pattern: pattern solid, fore_color green;')
-                        sheet.write(x,k,provider[k+1],st)
+                        sheet.write(x,k,float(provider[k+1]),st)
                         # print "marker 2"
                     else:
                         sheet.write(x,k,provider[k+1])

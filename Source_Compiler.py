@@ -20,6 +20,7 @@ sys.setdefaultencoding('utf-8')
 # """CLX Networks"""
 def clx(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    bst().database_build(root, edate)
     filename1 = convert().excel_tsv_to_csv(filename)
     filename2 = convert().csv_to_excel(filename1)
     filename3 = format().excel_format(filename2, source, 0, edate)
@@ -42,6 +43,7 @@ def clx(filename, root, source, edate, upload_list):
 # """Monty Mobile"""
 def monty(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    bst().database_build(root, edate)
     filename1 = convert().csv_to_excel(filename)
     filename2 = format().excel_format(filename1, source, 0, edate)
     if filename2 == -1:
@@ -54,8 +56,8 @@ def monty(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    rename_file(file_id, newname)
+    # move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    # rename_file(file_id, newname)
     # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)    
     return status
@@ -63,6 +65,7 @@ def monty(filename, root, source, edate, upload_list):
 # """Support to delete first row"""
 def silverstreet(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    bst().database_build(root, edate)
     book = xlrd.open_workbook(filename, 'rb')
     sheet = book.sheet_by_index(0)
     # """Check is to see if thit contains a random row value and modify it"""
@@ -104,6 +107,7 @@ def silverstreet(filename, root, source, edate, upload_list):
 # """Tata"""
 def tata(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    bst().database_build(root, edate)
     filename1 = format().excel_format(filename, source, 1, edate)
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
@@ -147,7 +151,6 @@ def tedexis(filename, root, source, edate, upload_list):
 # support for mmd, UPM, wavecell, mitto, monty, centro, tata, tedexis, bics, openmarket
 def general(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
-    print(file_id)
     bst().database_build(root, edate)
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
@@ -173,7 +176,8 @@ def main():
         general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN', 'KDDI Global']
         special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks']
 
-        title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
+        # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
+        title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0, 'Price Change']
         header = bst().node(title[0], title)
 
         # """Folder ID is for Test Files Folder"""
@@ -257,13 +261,15 @@ def main():
 
         for i in range(len(upload_list)):
             filename = upload_list.pop()
-            filename = 'Rates for ' + filename + '.xls'
-            to_delete = find_file_id(filename)
+            filename = 'Rates for ' + filename
+            to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+            file_to_upload = filename + '.xls'
             if not to_delete == None:
                 delete_file(to_delete)
-            upload_as_gsheet('Data/' + filename, filename)
+            upload_as_gsheet(file_to_upload, filename)
             file_id = find_file_id(filename)
             move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+            file_clean(file_to_upload)
 
         print "\nSource_Compiler has succesfully run to completion.\n\n\n"
 
