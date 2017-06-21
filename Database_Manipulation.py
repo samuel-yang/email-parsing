@@ -224,8 +224,8 @@ class bst():
         self.to_database(root.r_child, templist)
 
     def write(self, root, edate, upload_list):
-        book = xlwt.Workbook()
-        sheet = book.add_sheet("sheet")
+        book = xlwt.Workbook(style_compression=2)
+        sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
         filename = 'Rates for ' + str(edate) + '.xls'
         final_list = []
         length = 10 #lenght of provider list - 2 (hash key and change value)
@@ -234,24 +234,32 @@ class bst():
             provider = final_list.pop(0)
             # print len(final_list)
             for k in range(length):
-                if k == 7:
+                if k == 5:
+                    st = xlwt.easyxf('align: horiz right')
+                    sheet.write(x,k,provider[k+1],st)
+                elif k == 7:
                     # price increased
                     if provider[11] == 1:
-                        st = xlwt.easyxf('pattern: pattern solid, fore_color red;')
+                        st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
                         sheet.write(x,k,float(provider[k+1]),st)
                         # print "marker 1"
                     # price decreased
                     elif provider[11] == -1:
-                        st = xlwt.easyxf('pattern: pattern solid, fore_color green;')
+                        st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
                         sheet.write(x,k,float(provider[k+1]),st)
                         # print "marker 2"
                     else:
-                        sheet.write(x,k,provider[k+1])
+                        st = xlwt.easyxf('align: horiz right')
+                        sheet.write(x,k,provider[k+1],st)
                         # print "marker 3"
                 else:
-                    sheet.write(x,k,provider[k+1])
+                    st = xlwt.easyxf('align: horiz left')
+                    sheet.write(x,k,provider[k+1],st)
                     # print "marker 4"
 
+        sheet.col(0).width = 10000
+        sheet.col(1).width = 10000
+        sheet.col(8).width = 10000
         sheet.set_panes_frozen(True)
         sheet.set_horz_split_pos(1)
         book.save(filename)
