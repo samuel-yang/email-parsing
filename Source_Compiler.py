@@ -56,8 +56,8 @@ def monty(filename, root, source, edate, upload_list):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    # move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    # rename_file(file_id, newname)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
     # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)    
     return status
@@ -189,6 +189,21 @@ def main():
             return
         else:
             print "\nDownload list is: ", dl_list
+
+        # """Catches already processed files and modifies name so that emails can be found from the filenames"""
+        for i in range(len(dl_list)):
+            name = dl_list[i]
+            index = name.rfind('.')
+            hyphen1 = index - 3
+            hyphen2 = index - 6
+            if name[hyphen1] == '-' and name[hyphen2] == '-':
+                date_removed = name[:index-11]
+                ext = name[index:]
+                new_name = date_removed + ext
+                dl_list[i] = new_name
+                os.rename(name, new_name)
+                file_id = find_file_id(name)
+                rename_file(file_id, new_name)
 
         company_list = get_email_attachment_list(dl_list)
 
