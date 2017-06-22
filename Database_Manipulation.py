@@ -116,13 +116,14 @@ class bst():
             file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxdlJKMWFncWJzMVk')
             days = days + 1
             if days > 10:
+                #if not os.path.isfile(filename_old + '.xlsx'):
                 print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
                 book = openpyxl.Workbook()
                 filename_old = filename
                 book.save(filename_old + '.xlsx')
                 new_book = True
                 break
-
+            
         if not new_book:
             export_sheet(file_id)
 
@@ -153,6 +154,8 @@ class bst():
                         provider.append(converted)
                     else:
                         provider.append(sheet.cell(row=i+1,column=j+1).value)
+                elif j == 9:
+                    provider.append(str(sheet.cell(row=i+1, column=j+1).value))
                 else:
                     provider.append(sheet.cell(row=i+1, column=j+1).value)
                 if j < 5:
@@ -381,7 +384,7 @@ class convert():
 class format():
     global column_dictionary, column_list
     column_dictionary =({'Country': ['Country', 'CountryName']},
-                        {'Network': ['Network', 'OperatorName']},
+                        {'Network': ['Network', 'OperatorName', 'Operator']},
                         {'Country/Network': ['Country/Operator', 'Region/Operator', 'Country/Network']},
                         {'MCC': ['MCC']},
                         {'MNC': ['MNC']},

@@ -1,4 +1,4 @@
-import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys
+import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, win32com.client
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
@@ -148,8 +148,42 @@ def tedexis(filename, root, source, edate, upload_list):
     file_clean(filename)
     return status
 
+# """Agile Telecom"""
+def agile(filename, root, source, edate, upload_list):
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application')
+    cd_path = os.getcwd()
+    wb = excel.Workbooks.Open(cd_path + '\\' + filename)
+    ws = wb.Worksheets(1)
+    for shape in ws.Shapes:
+	shape.Delete()
+    print("Deleted all images from %s" % filename)
+    ws.Rows(ws.UsedRange.Rows.Count).Delete()
+    print("Deleted last row")    
+    wb.Save()
+    print("Saved %s" % filename)
+    excel.Quit()
+    
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    bst().database_build(root, edate)
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+	move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
+	return 'No rate in document.'
+    bst().source_build(root, filename1)
+    status = bst().write(root, edate, upload_list)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    # move_to_day_folder(newname, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    file_clean(filename)
+    return status
+
 # """General Use Case"""
-# support for mmd, UPM, wavecell, mitto, monty, centro, tata, tedexis, bics, openmarket
+# support for mmd, UPM, wavecell, centro, mitto, bics, openmarket, kddi, horisen, calltrade
 def general(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     bst().database_build(root, edate)
@@ -167,7 +201,7 @@ def general(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     # move_to_day_folder(newname, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    # file_clean(filename)
+    file_clean(filename)
     return status
 
 
@@ -175,7 +209,7 @@ def general(filename, root, source, edate, upload_list):
 def main():
 
         general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Calltrade']
-        special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks']
+        special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom']
 
         # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
         title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0, 'Price Change']
@@ -212,6 +246,7 @@ def main():
         if company_list==None:
     	    company_list=[]
     	    print ("No 'New' messages in the Inbox")
+	    return
         else:
             print "Email attachment list is: ", company_list 
 
@@ -300,7 +335,12 @@ def main():
                     elif file_to_process[1] == special_dictionary[j] and j == 4:
                         status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                         print 'Status of: ', file_to_process[0], ' is: ', status
-                        processed = True		
+                        processed = True
+		    # """Agile Telecom"""
+		    elif file_to_process[1] == special_dictionary[j] and j == 5:
+			status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+			print 'Status of: ', file_to_process[0], ' is: ', status
+			processed = True			
                     # """Not special case"""
                     else:
                         pass
