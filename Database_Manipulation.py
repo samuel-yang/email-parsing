@@ -22,8 +22,19 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 """ Currency Rate List defined here, and called so that it is only called once per program iteration"""
-global currency_rate
+global currency_rate, currency_dictionary, currency_list
 currency_rate = get_rates()
+
+currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
+                        {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS', 'Price in EUR']},
+                        {'GBP': ['Price in GBP']},
+                        {'CNY': []},
+                        {'MXN': []},
+                        {'AUD': ['Price in AUD']},
+                        {'GW': ['GW0', 'GW111']})
+
+# """Support only exists for USD, EUR right now, need to define dictionary for others"""
+currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN', 'AUD', 'GW']
 
 #value for date to be entered
 global today, tomorrow
@@ -93,7 +104,6 @@ class bst():
         filename = 'Rates for ' + str(edate)
         # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
         file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
-        print (file_id)
         day_before = edate
         days = 0
         new_book = False
@@ -106,9 +116,10 @@ class bst():
             file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxdlJKMWFncWJzMVk')
             days = days + 1
             if days > 10:
-                print ("Completely New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
+                print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
                 book = openpyxl.Workbook()
-                book.save(fileame + '.xlsx')
+                filename_old = filename
+                book.save(filename_old + '.xlsx')
                 new_book = True
                 break
 
@@ -120,14 +131,32 @@ class bst():
         sheet = book.active
         rownum = sheet.max_row
         colnum = sheet.max_column
+        print "row and col: ", rownum, colnum
         for i in range(rownum-1):
             i = i + 1
+            if sheet.cell(row=i+1, column=1).value == None:
+                break
             string = ''
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
             provider = [0]
             for j in range(colnum):
-                provider.append(sheet.cell(row=i+1, column=j+1).value)
-                if j < 6:
+                if j == 7:
+                    if provider[7] == 'CURR':
+                        provider.append(sheet.cell(row=i+1, column=j+1).value)
+                    elif not provider[7] == 'USD':
+                        curr = 0
+                        for x in range(len(currency_list)):
+                            if sheet.cell(row=i+1, column=j+1).value in currency_dictionary[x][currency_list[x]]:
+                                curr = x
+                                break
+
+                        converted = currency_rate[curr]*float(provider[6])
+                        provider.append(converted)
+                    else:
+                        provider.append(sheet.cell(row=i+1,column=j+1).value)
+                else:
+                    provider.append(sheet.cell(row=i+1, column=j+1).value)
+                if j < 5:
                     string = string + str(sheet.cell(row=i+1, column=j+1).value).encode("utf-8")
                 else:
                     pass
@@ -229,37 +258,44 @@ class bst():
         filename = 'Rates for ' + str(edate) + '.xls'
         final_list = []
         length = 10 #lenght of provider list - 2 (hash key and change value)
+
         self.to_database(root, final_list)
         for x in range(len(final_list)):
             provider = final_list.pop(0)
             # print len(final_list)
             for k in range(length):
-                if k == 5:
-                    st = xlwt.easyxf('align: horiz right')
+                if x == 0:
+                    st = xlwt.easyxf('align: horiz center')
                     sheet.write(x,k,provider[k+1],st)
-                elif k == 7:
-                    # price increased
-                    if provider[11] == 1:
-                        st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
-                        sheet.write(x,k,float(provider[k+1]),st)
-                        # print "marker 1"
-                    # price decreased
-                    elif provider[11] == -1:
-                        st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
-                        sheet.write(x,k,float(provider[k+1]),st)
-                        # print "marker 2"
-                    else:
+                else:
+                    if k == 5:
                         st = xlwt.easyxf('align: horiz right')
                         sheet.write(x,k,provider[k+1],st)
-                        # print "marker 3"
-                else:
-                    st = xlwt.easyxf('align: horiz left')
-                    sheet.write(x,k,provider[k+1],st)
-                    # print "marker 4"
+                    elif k == 7:
+                        # price increased
+                        if provider[11] == 1:
+                            st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
+                            sheet.write(x,k,float(provider[k+1]),st)
+                            # print "marker 1"
+                        # price decreased
+                        elif provider[11] == -1:
+                            st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
+                            sheet.write(x,k,float(provider[k+1]),st)
+                            # print "marker 2"
+                        else:
+                            st = xlwt.easyxf('align: horiz right')
+                            sheet.write(x,k,provider[k+1],st)
+                            # print "marker 3"
+                    else:
+                        st = xlwt.easyxf('align: horiz left')
+                        sheet.write(x,k,provider[k+1],st)
+                        # print "marker 4"
 
-        sheet.col(0).width = 10000
-        sheet.col(1).width = 10000
-        sheet.col(8).width = 10000
+        sheet.col(0).width = 6500
+        sheet.col(1).width = 8000
+        sheet.col(2).width = 2500
+        sheet.col(6).width = 2500 
+        sheet.col(8).width = 5000
         sheet.set_panes_frozen(True)
         sheet.set_horz_split_pos(1)
         book.save(filename)
@@ -344,7 +380,7 @@ class convert():
 
 """Format class contains all formatting methods that will be used"""
 class format():
-    global column_dictionary, column_list, currency_dictionary, currency_list, currency_rate
+    global column_dictionary, column_list
     column_dictionary =({'Country': ['Country', 'CountryName']},
                         {'Network': ['Network', 'OperatorName']},
                         {'Country/Network': ['Country/Operator', 'Region/Operator', 'Country/Network']},
@@ -356,17 +392,6 @@ class format():
                             'Price in AUD', 'Price in EUR', 'GW0', 'GW111']}))
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
-
-    currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
-                            {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS', 'Price in EUR']},
-                            {'GBP': ['Price in GBP']},
-                            {'CNY': []},
-                            {'MXN': []},
-                            {'AUD': ['Price in AUD']},
-                            {'GW': ['GW0', 'GW111']})
-
-    # """Support only exists for USD, EUR right now, need to define dictionary for others"""
-    currency_list = ['USD', 'EUR', 'GBP', 'CNY', 'MXN', 'AUD', 'GW']
 
     # """ excel_filter takes and removes empty rows from a FORMATTED document """
     def excel_filter(self, filename):
@@ -566,6 +591,30 @@ class format():
         print "File has been properly formatted."
         # os.remove(filename)
         return filename1
+
+    # """Monty_is_special - formats the Rate to EUR, as it is not labeled properly """
+    def monty_is_special(self, filename, og_file):
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0)
+        og_book = xlrd.open_workbook(og_file)
+        og_sheet = og_book.sheet_by_index(0)
+        newbook = xlutils.copy.copy(book)
+        sheet_wr = newbook.get_sheet(0)
+        for x in range(sheet.nrows):
+            if x > 0:
+                curr = og_sheet.cell(x,10).value
+                sheet_wr.write(x,6,curr)
+                rate = sheet.cell(x,5).value
+                for i in range(len(currency_list)):
+                    if curr in currency_list[i]:
+                        j = i
+                        break
+
+                converted = currency_rate[j]*float(rate)
+                sheet_wr.write(x,7,converted)
+
+        newbook.save(filename)
+        return filename
 
     """ Parses through strings with multiple components and returns list with separated strings"""
     def separator(self, cell_val):

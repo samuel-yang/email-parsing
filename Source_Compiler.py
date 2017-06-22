@@ -49,7 +49,9 @@ def monty(filename, root, source, edate, upload_list):
     if filename2 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
-    bst().source_build(root, filename2) 
+    print filename2
+    filename3 = format().monty_is_special(filename2, filename1)
+    bst().source_build(root, filename3) 
     status = bst().write(root, edate, upload_list)   
     index = filename.rfind('.')
     short = filename[:index]
@@ -59,7 +61,7 @@ def monty(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
-    file_clean(filename)    
+    # file_clean(filename)    
     return status
 
 # """Support to delete first row"""
