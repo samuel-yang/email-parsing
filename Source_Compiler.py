@@ -49,7 +49,6 @@ def monty(filename, root, source, edate, upload_list):
     if filename2 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
-    print filename2
     filename3 = format().monty_is_special(filename2, filename1)
     bst().source_build(root, filename3) 
     status = bst().write(root, edate, upload_list)   
@@ -61,7 +60,7 @@ def monty(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
-    # file_clean(filename)    
+    file_clean(filename)    
     return status
 
 # """Support to delete first row"""
@@ -188,6 +187,7 @@ def main():
         
         if len(dl_list) == 0:
             print "No new files to be processed."
+            print "\nSource_Compiler has succesfully run to completion.\n\n\n"
             return
         else:
             print "\nDownload list is: ", dl_list
@@ -218,11 +218,52 @@ def main():
         if len(company_list) != len(dl_list):
             print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
 
+        index = len(company_list) - 1    
+        check_date = company_list[index][3]
+
         for i in range(len(company_list)):
             file_to_process = company_list.pop()
             processed = False
             print "\nFile currently being processed is: ", file_to_process[0]
             print "Remaining number of files to be processed is: ", len(company_list)
+            print check_date
+            # """Checks for multiple dates - backbuilds database to make sure information is correct"""
+            if check_date < file_to_process[3]:
+                print ("\nMultiple dates in files found.  Backbuilding database now.")
+                # """Uploads current working version"""
+                filename = upload_list.pop()
+                filename = 'Rates for ' + filename
+                to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+                file_to_upload = filename + '.xls'
+                if not to_delete == None:
+                    delete_file(to_delete)
+                upload_as_gsheet(file_to_upload, filename)
+                file_id = find_file_id(filename)
+                move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+                file_clean(file_to_upload)
+
+                # """Back builds all previous days until current day"""
+                temp_date = check_date
+                while(temp_date < file_to_process[3]):
+                    temp_date = temp_date + timedelta(days=1)
+                    filename = 'Rates for ' + str(temp_date)
+                    bst().database_build(header, temp_date)
+                    status = bst().write(header, temp_date, upload_list)
+                    print "Status of: ", filename + '.xls', ' is: ', status
+                    # """Uploading new version"""
+                    to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+                    file_to_upload = filename + '.xls'
+                    if not to_delete == None:
+                        delete_file(to_delete)
+                    upload_as_gsheet(file_to_upload, filename)
+                    file_id = find_file_id(filename)
+                    move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+                    file_clean(file_to_upload)
+
+                # """Updates checkdate to most recent version"""
+                check_date = file_to_process[3]
+                print ("Backbuilding has completed.\n\n") 
+
             for j in range(len(general_dictionary)):
                 # """General use case scenario"""
                 if file_to_process[1] == general_dictionary[j]:
@@ -263,6 +304,7 @@ def main():
                     # """Not special case"""
                     else:
                         pass
+
                 # """Case not yet tested:::
             if not processed:
                 file_source = file_to_process[1]
@@ -274,9 +316,11 @@ def main():
                 move_to_day_folder(file_id, file_to_process[3], '0BzlU44AWMToxOGtyYWZzSVAyNkE') # Moves to date folder in "NotProcessed"
                 os.remove(file_to_process[0])
 
-        print '\nNow uploading compiled data flies'
+        print '\nNow uploading compiled data files'
 
-        for i in range(len(upload_list)):
+        # upload last version (if loop isnt iterated through)
+        if len(upload_list) > 0:
+            print "Final version uploading"
             filename = upload_list.pop()
             filename = 'Rates for ' + filename
             to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
