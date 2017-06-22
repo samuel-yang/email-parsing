@@ -131,7 +131,6 @@ class bst():
         sheet = book.active
         rownum = sheet.max_row
         colnum = sheet.max_column
-        print "row and col: ", rownum, colnum
         for i in range(rownum-1):
             i = i + 1
             if sheet.cell(row=i+1, column=1).value == None:
@@ -146,7 +145,7 @@ class bst():
                     elif not provider[7] == 'USD':
                         curr = 0
                         for x in range(len(currency_list)):
-                            if sheet.cell(row=i+1, column=j+1).value in currency_dictionary[x][currency_list[x]]:
+                            if provider[7] in currency_list[x]:
                                 curr = x
                                 break
 
