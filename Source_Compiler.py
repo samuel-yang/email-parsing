@@ -167,14 +167,14 @@ def general(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     # move_to_day_folder(newname, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    file_clean(filename)
+    # file_clean(filename)
     return status
 
 
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
 
-        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN', 'KDDI Global']
+        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Calltrade']
         special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks']
 
         # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
@@ -226,7 +226,7 @@ def main():
             processed = False
             print "\nFile currently being processed is: ", file_to_process[0]
             print "Remaining number of files to be processed is: ", len(company_list)
-            print check_date
+
             # """Checks for multiple dates - backbuilds database to make sure information is correct"""
             if check_date < file_to_process[3]:
                 print ("\nMultiple dates in files found.  Backbuilding database now.")
@@ -331,6 +331,25 @@ def main():
             file_id = find_file_id(filename)
             move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
             file_clean(file_to_upload)
+
+            # """Updates to current most day"""
+            temp_date = file_to_process[3]
+            while(temp_date < date.today() - timedelta(days=1)):
+                print ("File older than  current date processed.  Updating database to most current day")
+                temp_date = temp_date + timedelta(days=1)
+                filename = 'Rates for ' + str(temp_date)
+                bst().database_build(header, temp_date)
+                status = bst().write(header, temp_date, upload_list)
+                print "Status of: ", filename + '.xls', ' is: ', status
+                # """Uploading new version"""
+                to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+                file_to_upload = filename + '.xls'
+                if not to_delete == None:
+                    delete_file(to_delete)
+                upload_as_gsheet(file_to_upload, filename)
+                file_id = find_file_id(filename)
+                move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+                file_clean(file_to_upload)
 
         print "\nSource_Compiler has succesfully run to completion.\n\n\n"
 

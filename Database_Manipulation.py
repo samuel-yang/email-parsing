@@ -385,7 +385,7 @@ class format():
                         {'Country/Network': ['Country/Operator', 'Region/Operator', 'Country/Network']},
                         {'MCC': ['MCC']},
                         {'MNC': ['MNC']},
-                        {'MCCMNC': ['MCCMNC', 'Network code', 'IMSI']},
+                        {'MCCMNC': ['MCCMNC', 'Network code', 'IMSI', 'MCC MNC']},
                         ({'Rate': ['Rate', 'Price', 'New Price', 'New Price(Euro)', 'Price Euro', 'New Price EUR', 
                             'New Price (EUR)', 'Price \nEUR/SMS', 'New Price (USD)', 'Rate - USD', 'Price in GBP',
                             'Price in AUD', 'Price in EUR', 'GW0', 'GW111']}))
@@ -654,11 +654,9 @@ def file_clean(filename):
     index = filename.rfind('.')
     short = filename[:index]
     if os.path.isfile(short + '.xls'):
-        print "removed it as an xls"
         os.remove(short + '.xls')
 
     if os.path.isfile(short + '.xlsx'):
-        print "trying to remove as xlsx"
         os.remove(short + '.xlsx')
 
     if os.path.isfile(short + '.csv'):
