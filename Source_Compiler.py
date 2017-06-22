@@ -257,7 +257,7 @@ def main():
                     elif file_to_process[1] == special_dictionary[j] and j == 4:
                         status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
                         print 'Status of: ', file_to_process[0], ' is: ', status
-                        processed = True
+                        processed = True		
                     # """Not special case"""
                     else:
                         pass
