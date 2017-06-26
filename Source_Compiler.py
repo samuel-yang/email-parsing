@@ -375,7 +375,7 @@ def main():
 
             # """Updates to current most day"""
             temp_date = file_to_process[3]
-            while(temp_date < date.today()):
+            while(temp_date < date.today() - timedelta(days=1)):
                 print ("File older than  current date processed.  Updating database to most current day")
                 temp_date = temp_date + timedelta(days=1)
                 filename = 'Rates for ' + str(temp_date)
