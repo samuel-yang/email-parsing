@@ -1,4 +1,5 @@
-import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, win32com.client
+import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys
+import win32com.client
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
