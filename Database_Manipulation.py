@@ -103,7 +103,7 @@ class bst():
     def database_build(self, root, edate):
         filename = 'Rates for ' + str(edate)
         # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
-        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
         day_before = edate
         days = 0
         new_book = False
@@ -113,7 +113,7 @@ class bst():
             print ("No file found")
             day_before = day_before - timedelta(days = 1)
             filename_old = 'Rates for ' + str(day_before)
-            file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+            file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
             days = days + 1
             if days > 10:
                 #if not os.path.isfile(filename_old + '.xlsx'):

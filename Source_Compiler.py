@@ -269,13 +269,13 @@ def main():
                 # """Uploads current working version"""
                 filename = upload_list.pop()
                 filename = 'Rates for ' + filename
-                to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+                to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
                 file_to_upload = filename + '.xls'
                 if not to_delete == None:
                     delete_file(to_delete)
                 upload_as_gsheet(file_to_upload, filename)
                 file_id = find_file_id(filename)
-                move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+                move_to_folder(file_id, '0BzlU44AWMToxYmdRR1hHVXJiQ1E') # Moves to "Compiled Data" folder
                 file_clean(file_to_upload)
 
                 # """Back builds all previous days until current day"""
@@ -287,13 +287,13 @@ def main():
                     status = bst().write(header, temp_date, upload_list)
                     print "Status of: ", filename + '.xls', ' is: ', status
                     # """Uploading new version"""
-                    to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+                    to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
                     file_to_upload = filename + '.xls'
                     if not to_delete == None:
                         delete_file(to_delete)
                     upload_as_gsheet(file_to_upload, filename)
                     file_id = find_file_id(filename)
-                    move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+                    move_to_folder(file_id, '0BzlU44AWMToxYmdRR1hHVXJiQ1E') # Moves to "Compiled Data" folder
                     file_clean(file_to_upload)
 
                 # """Updates checkdate to most recent version"""
@@ -364,13 +364,13 @@ def main():
             print "Final version uploading"
             filename = upload_list.pop()
             filename = 'Rates for ' + filename
-            to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+            to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
             file_to_upload = filename + '.xls'
             if not to_delete == None:
                 delete_file(to_delete)
             upload_as_gsheet(file_to_upload, filename)
             file_id = find_file_id(filename)
-            move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+            move_to_folder(file_id, '0BzlU44AWMToxYmdRR1hHVXJiQ1E') # Moves to "Compiled Data" folder
             file_clean(file_to_upload)
 
             # """Updates to current most day"""
@@ -383,13 +383,13 @@ def main():
                 status = bst().write(header, temp_date, upload_list)
                 print "Status of: ", filename + '.xls', ' is: ', status
                 # """Uploading new version"""
-                to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxdlJKMWFncWJzMVk')
+                to_delete = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
                 file_to_upload = filename + '.xls'
                 if not to_delete == None:
                     delete_file(to_delete)
                 upload_as_gsheet(file_to_upload, filename)
                 file_id = find_file_id(filename)
-                move_to_folder(file_id, '0BzlU44AWMToxdlJKMWFncWJzMVk') # Moves to "Compiled Data" folder
+                move_to_folder(file_id, '0BzlU44AWMToxYmdRR1hHVXJiQ1E') # Moves to "Compiled Data" folder
                 file_clean(file_to_upload)
 
         print "\nSource_Compiler has succesfully run to completion.\n\n\n"
