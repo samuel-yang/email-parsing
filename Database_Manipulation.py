@@ -17,6 +17,7 @@ from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
 from xlutils.copy import copy
+from gspread import *
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -52,130 +53,154 @@ class bst():
             self.key = hashkey
             self.data = val
 
-    # """Database build differs from source build in that it extracts cell formatting for certian conditions,
-    # to test and see if cells are properly highlighted"""
     # def database_build(self, root, edate):
-    #     yesterday = edate - timedelta(days = 1)
-    #     filename = 'Data/Rates for ' + str(edate) + '.xls'
-    #     if not os.path.isfile(filename):
-    #         old_filename = 'Data/Rates for ' + str(yesterday) + '.xls'
-    #         if not os.path.isfile(old_filename):
-    #             book = xlwt.Workbook()
-    #             sheet = book.add_sheet("sheet", cell_overwrite_ok = True)
-    #             book.save(filename)
-    #         else:
-    #             shutil.copy2(old_filename, filename)
-    #         print "New file made: ", filename
+    #     filename = 'Rates for ' + str(edate)
+    #     # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
+    #     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+    #     day_before = edate
+    #     days = 0
+    #     new_book = False
+    #     filename_old = filename
 
-    #     book = xlrd.open_workbook(filename, formatting_info = True)
-    #     sheet = book.sheet_by_index(0)
-    #     rownum = sheet.nrows #should be 10
-    #     colnum = sheet.ncols
+    #     while(file_id == None):
+    #         print ("No file found")
+    #         day_before = day_before - timedelta(days = 1)
+    #         filename_old = 'Rates for ' + str(day_before)
+    #         file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+    #         days = days + 1
+    #         if days > 10:
+    #             #if not os.path.isfile(filename_old + '.xlsx'):
+    #             print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
+    #             book = openpyxl.Workbook()
+    #             filename_old = filename
+    #             book.save(filename_old + '.xlsx')
+    #             new_book = True
+    #             break
+            
+    #     if not new_book:
+    #         export_sheet(file_id)
+
+    #     filename = filename_old + '.xlsx'
+    #     book = openpyxl.load_workbook(filename)
+    #     sheet = book.active
+    #     rownum = sheet.max_row
+    #     colnum = sheet.max_column
     #     for i in range(rownum-1):
     #         i = i + 1
+    #         if sheet.cell(row=i+1, column=1).value == None:
+    #             break
     #         string = ''
     #         """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
     #         provider = [0]
     #         for j in range(colnum):
-    #             provider.append(sheet.cell(i,j).value)
+    #             if j == 7:
+    #                 if provider[7] == 'CURR':
+    #                     provider.append(sheet.cell(row=i+1, column=j+1).value)
+    #                 elif not provider[7] == 'USD':
+    #                     curr = 0
+    #                     for x in range(len(currency_list)):
+    #                         if provider[7] in currency_list[x]:
+    #                             curr = x
+    #                             break
+
+    #                     converted = currency_rate[curr]*float(provider[6])
+    #                     provider.append(converted)
+    #                 else:
+    #                     provider.append(sheet.cell(row=i+1,column=j+1).value)
+    #             elif j == 9:
+    #                 provider.append(str(sheet.cell(row=i+1, column=j+1).value))
+    #             else:
+    #                 provider.append(sheet.cell(row=i+1, column=j+1).value)
     #             if j < 5:
-    #                 string = string + str(sheet.cell(i,j).value).encode("utf-8")
+    #                 string = string + str(sheet.cell(row=i+1, column=j+1).value).encode("utf-8")
     #             else:
     #                 pass
 
     #         provider[0] = hash(string)
     #         provider.append(0)
     #         if not provider[10] == today:
-    #             xfx = sheet.cell_xf_index(i, 7)
-    #             xf = book.xf_list[xfx]
-    #             bgx = xf.background.pattern_colour_index
-    #             ## RED = 10, GREEN = 17
-    #             if bgx == 10:
+    #             cell_fill = str(sheet.cell(row=i+1, column=8).fill)
+    #             index = cell_fill.rfind('rgb=')+4
+    #             color = cell_fill[index:index+10]
+    #             # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
+    #             if color == 'FFFF0000':
     #                 provider[11] = 1
-    #             elif bgx ==17:
+    #             elif color == 'FF008000':
     #                 provider[11] = -1
 
     #         self.insert(root, self.node(provider[0], provider))
 
-    # """Database build NEW. downloads the latest rates sheet from the google drive, and extracts the information,
-    # to biuld from there.  If file not found, it pulls form the oldest possible version of the rates sheet"""
-
-    def database_build(self, root, edate):
+    # """Database build differs from source build in that it extracts cell formatting for certian conditions,
+    # to test and see if cells are properly highlighted, works directly with google sheets"""
+    def database_build(self, root, edate, client):
         filename = 'Rates for ' + str(edate)
-        # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
-        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        # file_id = find_file_id(filename)
+        # if file_id != None:
+        #     delete_file(file_id)
+
         day_before = edate
         days = 0
-        new_book = False
         filename_old = filename
+        found = False
+        while days <10 and not found:
+            try:
+                book = client.open(filename)
+                sheet = book.get_worksheet(0)
+                found = True
+                print ("Rate sheet for %s found." %str(edate))
+            except SpreadsheetNotFound:
+                print ('No sheet for %s found.' %str(day_before))
+                day_before = day_before - timedelta(days=1)
+                days = days + 1
 
-        while(file_id == None):
-            print ("No file found")
-            day_before = day_before - timedelta(days = 1)
-            filename_old = 'Rates for ' + str(day_before)
-            file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            days = days + 1
-            if days > 10:
-                #if not os.path.isfile(filename_old + '.xlsx'):
-                print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
-                book = openpyxl.Workbook()
-                filename_old = filename
-                book.save(filename_old + '.xlsx')
-                new_book = True
-                break
-            
-        if not new_book:
-            export_sheet(file_id)
+        if not found:
+            book = client.create(filename) 
+            sheet = book.get_worksheet(0)
+            print ("New sheet created. Sheet created is for %s" %str(edate))
+            return
 
-        filename = filename_old + '.xlsx'
-        book = openpyxl.load_workbook(filename)
-        sheet = book.active
-        rownum = sheet.max_row
-        colnum = sheet.max_column
-        for i in range(rownum-1):
-            i = i + 1
-            if sheet.cell(row=i+1, column=1).value == None:
-                break
-            string = ''
-            """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
-            provider = [0]
-            for j in range(colnum):
-                if j == 7:
-                    if provider[7] == 'CURR':
-                        provider.append(sheet.cell(row=i+1, column=j+1).value)
-                    elif not provider[7] == 'USD':
-                        curr = 0
-                        for x in range(len(currency_list)):
-                            if provider[7] in currency_list[x]:
-                                curr = x
-                                break
-
-                        converted = currency_rate[curr]*float(provider[6])
-                        provider.append(converted)
-                    else:
-                        provider.append(sheet.cell(row=i+1,column=j+1).value)
-                elif j == 9:
-                    provider.append(str(sheet.cell(row=i+1, column=j+1).value))
-                else:
-                    provider.append(sheet.cell(row=i+1, column=j+1).value)
-                if j < 5:
-                    string = string + str(sheet.cell(row=i+1, column=j+1).value).encode("utf-8")
-                else:
-                    pass
-
-            provider[0] = hash(string)
-            provider.append(0)
-            if not provider[10] == today:
-                cell_fill = str(sheet.cell(row=i+1, column=8).fill)
-                index = cell_fill.rfind('rgb=')+4
-                color = cell_fill[index:index+10]
-                # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
-                if color == 'FFFF0000':
-                    provider[11] = 1
-                elif color == 'FF008000':
-                    provider[11] = -1
+        rownum = sheet.row_count
+        colnum = sheet.col_count
+        full = sheet.get_all_values()
+        full.pop(0)
+        print ("\n\n\n All values retreived.\n")
+        for i in range(len(full)):
+            temp = full.pop(0)
+            if temp[0] == '':
+                pass
+            else:
+                provider = [0]
+                provider = provider + temp
+                string = ''
+                for i in range(5):
+                    string = string + str(temp[i]).encode('utf-8')
+                
+                provider[0] = hash(string)
+                if provider[7] != 'USD':
+                    for j in range(len(currency_list)):
+                        if provider[7] in currency_list[j]:
+                            curr = j
+                            break
+                    converted = currency_rate[curr]*float(provider[6])
+                    provider[8] = converted
 
             self.insert(root, self.node(provider[0], provider))
+
+        #     provider[0] = hash(string)
+        #     provider.append(0)
+        #     if not provider[10] == today:
+        #         cell_fill = str(sheet.cell(row=i+1, column=8).fill)
+        #         index = cell_fill.rfind('rgb=')+4
+        #         color = cell_fill[index:index+10]
+        #         # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
+        #         if color == 'FFFF0000':
+        #             provider[11] = 1
+        #         elif color == 'FF008000':
+        #             provider[11] = -1
+
+        #     self.insert(root, self.node(provider[0], provider))
+
+
 
     def insert(self, root, node):
         if root is None:
