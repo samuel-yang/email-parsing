@@ -72,6 +72,18 @@ def initialize_gmail_service():
     
     return gmail_service
 
+def initialize_sheets_service():
+    """Initializes a Google Sheets service instance.
+    
+    Returns:
+        sheets_service, a Google Sheets service instance.
+    """        
+    credentials = get_credentials()
+    http = credentials.authorize(httplib2.Http())
+    sheets_service = discovery.build('sheets', 'v4', http=http)
+    
+    return sheets_service
+
 def create_folder(name):
     """Creates a folder in Google Drive.
 
@@ -852,6 +864,95 @@ def remove_label(ind):
     messages = results['messages']
     mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ["Label_2"]}).execute()
 
+def format_cell_color(row, col, sheet_id, color):
+    """Formats the color of a spreadsheet cell.
+
+    Args:
+        row: row of the cell.
+        col: column of the cell.
+        sheet_id: ID of the sheet.
+        color: color of the cell.
+    """    
+    sheets_service = initialize_sheets_service()
+    
+    spreadsheet_id = sheet_id
+    
+    if color.lower() == 'red':
+        red = 1.0
+        green = 0.0
+        blue = 0.0
+    elif color.lower() == 'green':
+        red = 0.0
+        green = 0.502
+        blue = 0.0
+    else:
+        red = 1.0
+        green = 1.0
+        blue = 1.0
+
+    batch_update_spreadsheet_request_body = {
+        'requests': [
+            {
+                "repeatCell": {
+                    "range": {
+                        "sheetId": 0,
+                        "startRowIndex": row,
+                        "endRowIndex": row + 1,
+                        "startColumnIndex": col,
+                        "endColumnIndex": col + 1
+                    },
+                    "cell": {
+                        "userEnteredFormat": {
+                            "backgroundColor": {
+                                "red": red,
+                                "green": green,
+                                "blue": blue
+                        },
+                            "horizontalAlignment" : "RIGHT",
+                            "textFormat": {
+                            "fontSize": 10
+                            }
+                        }
+                    },
+                "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
+                }
+            }
+        ],
+    }
+    
+    request = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=batch_update_spreadsheet_request_body)   
+    response = request.execute()
+    print("Changed cell color to " + color + ".")
+    
+def get_cell_color(row, col, sheet_id):
+    """Gets the color of a spreadsheet cell. Only gets red and green cells.
+
+    Args:
+        row: row of the cell.
+        col: column of the cell.
+        sheet_id: ID of the sheet.
+        
+    Returns:
+        color, the color of the cell. Returns None if there is no cell color formatting.
+    """    
+    sheets_service = initialize_sheets_service()
+    
+    spreadsheet_id = sheet_id
+    
+    cell = ('R' + str(row) + 'C' + str(col))
+    
+    request = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id, includeGridData=True, ranges = cell)   
+    response = request.execute()
+    
+    sheets = response['sheets']
+    try: 
+        color = (sheets[0]['data'][0]['rowData'][0]['values'][0]['userEnteredFormat']['backgroundColor'].keys()[0])
+    except KeyError:
+        color = None
+    
+    return color
+        
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
+    sheets_service = initialize_sheets_service
