@@ -877,6 +877,118 @@ def remove_label(ind):
     messages = results['messages']
     mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ["Label_2"]}).execute()
 
+def format_cell_alignment(sheet_id):
+    """Formats the alignment of a spreadsheet cell.
+
+    Args:
+        sheet_id: ID of the sheet.
+    """    
+    sheets_service = initialize_sheets_service()
+    
+    spreadsheet_id = sheet_id
+    
+    col_list = [5, 7, 10]
+    
+    for col in col_list:
+        if col == 10:
+            alignment = 'CENTER'
+        else:
+            alignment = 'RIGHT'
+
+        batch_update_spreadsheet_request_body = {
+            'requests': [
+                {
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": 0,
+                            "startRowIndex": 0,
+                            "startColumnIndex": col,
+                            "endColumnIndex": col + 1
+                            },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "horizontalAlignment" : alignment
+                            }
+                        },
+                    "fields": "userEnteredFormat(horizontalAlignment)"
+                    }
+                },
+                {
+                    "repeatCell": {
+                        "range": {
+                            "sheetId": 0,
+                            "startRowIndex": 0,
+                            "endRowIndex": 1,
+                            "startColumnIndex": 0
+                            },
+                        "cell": {
+                            "userEnteredFormat": {
+                                "horizontalAlignment" : 'CENTER'
+                            }
+                        },
+                    "fields": "userEnteredFormat(horizontalAlignment)"
+                    }
+                },                    
+            ],
+        }
+    
+        request = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=batch_update_spreadsheet_request_body)   
+        response = request.execute()
+
+def conditional_format(spreadsheet_id):
+    
+    sheets_service = initialize_sheets_service()
+        
+    myRange = {
+        "sheetId": 0,
+      "startRowIndex": 0,
+      "startColumnIndex": 0,
+    }
+    
+    requests = []
+    
+    requests.append({
+        "addConditionalFormatRule": {
+          "rule": {
+              "ranges": [ myRange ],
+            "booleanRule": {
+              "condition": {
+                "type": "CUSTOM_FORMULA",
+              "values": [ { "userEnteredValue": "=EXACT(\"Increase\", $K1)" } ]
+              },
+            "format": {
+                "backgroundColor": { "red": 1.0, "green": 0.3, "blue": 0.3 }
+            }
+          }
+          },
+        "index": 0
+      }
+    })
+    
+    requests.append({
+        "addConditionalFormatRule": {
+          "rule": {
+              "ranges": [ myRange ],
+            "booleanRule": {
+              "condition": {
+                "type": "CUSTOM_FORMULA",
+              "values": [ { "userEnteredValue": "=EXACT(\"Decrease\", $K1)" } ]
+              },
+            "format": {
+                "backgroundColor": { "red": 0.4, "green": 0.65, "blue": 0.3 }
+            }
+          }
+          },
+        "index": 0
+      }
+    })    
+    
+    body = {
+        'requests': requests
+    }
+    result = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
+                                                body=body).execute()    
+
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
