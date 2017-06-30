@@ -94,7 +94,7 @@ def send_message(user_id, message):
     try:
         message = (gmail_service.users().messages().send(userId=user_id, body=message)
                .execute())
-        print 'Message Id: %s' % message['id']
+        print 'Sent Message. Id: %s' % message['id']
         return message
     except errors.HttpError, error:
         print 'An error occurred: %s' % error
