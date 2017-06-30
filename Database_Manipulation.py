@@ -53,6 +53,15 @@ class bst():
             self.key = hashkey
             self.data = val
 
+    def size(self, root):
+        count = 1
+        if root == None:
+            return 0
+        else:
+            count = count + self.size(root.l_child)
+            count = count + self.size(root.r_child)
+            return count
+
     # def database_build(self, root, edate):
     #     filename = 'Rates for ' + str(edate)
     #     # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
@@ -162,6 +171,8 @@ class bst():
         rownum = sheet.row_count
         colnum = sheet.col_count
         full = sheet.get_all_values()
+        if full == []:
+            return
         full.pop(0)
         print ("\n\n\n All values retreived.\n")
         for i in range(len(full)):
@@ -279,63 +290,83 @@ class bst():
         self.to_database(root.l_child, templist)
         self.to_database(root.r_child, templist)
 
-    def write(self, root, edate, upload_list):
-        book = xlwt.Workbook(style_compression=2)
-        sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
-        filename = 'Rates for ' + str(edate) + '.xls'
+    # def write(self, root, edate, upload_list):
+    #     book = xlwt.Workbook(style_compression=2)
+    #     sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
+    #     filename = 'Rates for ' + str(edate) + '.xls'
+    #     final_list = []
+    #     length = 10 #lenght of provider list - 2 (hash key and change value)
+
+    #     self.to_database(root, final_list)
+    #     for x in range(len(final_list)):
+    #         provider = final_list.pop(0)
+    #         # print len(final_list)
+    #         for k in range(length):
+    #             if x == 0:
+    #                 st = xlwt.easyxf('align: horiz center')
+    #                 sheet.write(x,k,provider[k+1],st)
+    #             else:
+    #                 if k == 5:
+    #                     st = xlwt.easyxf('align: horiz right')
+    #                     sheet.write(x,k,provider[k+1],st)
+    #                 elif k == 7:
+    #                     # price increased
+    #                     if provider[11] == 1:
+    #                         st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
+    #                         sheet.write(x,k,float(provider[k+1]),st)
+    #                         # print "marker 1"
+    #                     # price decreased
+    #                     elif provider[11] == -1:
+    #                         st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
+    #                         sheet.write(x,k,float(provider[k+1]),st)
+    #                         # print "marker 2"
+    #                     else:
+    #                         st = xlwt.easyxf('align: horiz right')
+    #                         sheet.write(x,k,provider[k+1],st)
+    #                         # print "marker 3"
+    #                 else:
+    #                     st = xlwt.easyxf('align: horiz left')
+    #                     sheet.write(x,k,provider[k+1],st)
+    #                     # print "marker 4"
+
+    #     sheet.col(0).width = 6500
+    #     sheet.col(1).width = 8000
+    #     sheet.col(2).width = 2500
+    #     sheet.col(6).width = 2500 
+    #     sheet.col(8).width = 5000
+    #     sheet.set_panes_frozen(True)
+    #     sheet.set_horz_split_pos(1)
+    #     book.save(filename)
+
+    #     for x in range(len(upload_list)):
+    #         if str(edate) == upload_list[x]:
+    #             return 'Succesfully written. Data for ', str(edate), 'has alredy been queued to upload.'
+
+    #     # """If edate isn't found already in list, add it to list to upload"""
+    #     upload_list.append(str(edate))
+    #     return 'Successfully written. Data for ', str(edate), 'is now queued to upload.'
+
+    def write(self, root, edate, client, rowcount):
+        filename = 'Rates for ' + str(edate)
+        book = client.open(filename)
+        sheet = book.get_worksheet(0)
+        sheet.clear()
         final_list = []
-        length = 10 #lenght of provider list - 2 (hash key and change value)
-
         self.to_database(root, final_list)
-        for x in range(len(final_list)):
+
+        # cell_list = sheet.range(1,1,1,10)
+        # print cell_list
+        for i in range(rowcount):
+            i = i + 1
+            cell_list = sheet.range(i,1,i,10)
             provider = final_list.pop(0)
-            # print len(final_list)
-            for k in range(length):
-                if x == 0:
-                    st = xlwt.easyxf('align: horiz center')
-                    sheet.write(x,k,provider[k+1],st)
-                else:
-                    if k == 5:
-                        st = xlwt.easyxf('align: horiz right')
-                        sheet.write(x,k,provider[k+1],st)
-                    elif k == 7:
-                        # price increased
-                        if provider[11] == 1:
-                            st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
-                            sheet.write(x,k,float(provider[k+1]),st)
-                            # print "marker 1"
-                        # price decreased
-                        elif provider[11] == -1:
-                            st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
-                            sheet.write(x,k,float(provider[k+1]),st)
-                            # print "marker 2"
-                        else:
-                            st = xlwt.easyxf('align: horiz right')
-                            sheet.write(x,k,provider[k+1],st)
-                            # print "marker 3"
-                    else:
-                        st = xlwt.easyxf('align: horiz left')
-                        sheet.write(x,k,provider[k+1],st)
-                        # print "marker 4"
+            index = 1
+            for cell in cell_list:
+                cell.value = provider[index]
+                index = index + 1
 
-        sheet.col(0).width = 6500
-        sheet.col(1).width = 8000
-        sheet.col(2).width = 2500
-        sheet.col(6).width = 2500 
-        sheet.col(8).width = 5000
-        sheet.set_panes_frozen(True)
-        sheet.set_horz_split_pos(1)
-        book.save(filename)
+            sheet.update_cells(cell_list)
 
-        for x in range(len(upload_list)):
-            if str(edate) == upload_list[x]:
-                return 'Succesfully written. Data for ', str(edate), 'has alredy been queued to upload.'
-
-        # """If edate isn't found already in list, add it to list to upload"""
-        upload_list.append(str(edate))
-        return 'Successfully written. Data for ', str(edate), 'is now queued to upload.'
-
- 
 """Convert class performs all file conversions"""
 class convert():
     """CSV_TO_EXCEL takes in a string argument of the filename, and returns
