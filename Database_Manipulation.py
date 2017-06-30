@@ -62,83 +62,6 @@ class bst():
             count = count + self.size(root.r_child)
             return count
 
-    # def database_build(self, root, edate):
-    #     filename = 'Rates for ' + str(edate)
-    #     # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
-    #     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-    #     day_before = edate
-    #     days = 0
-    #     new_book = False
-    #     filename_old = filename
-
-    #     while(file_id == None):
-    #         print ("No file found")
-    #         day_before = day_before - timedelta(days = 1)
-    #         filename_old = 'Rates for ' + str(day_before)
-    #         file_id = find_file_id_using_parent(filename_old, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-    #         days = days + 1
-    #         if days > 10:
-    #             #if not os.path.isfile(filename_old + '.xlsx'):
-    #             print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
-    #             book = openpyxl.Workbook()
-    #             filename_old = filename
-    #             book.save(filename_old + '.xlsx')
-    #             new_book = True
-    #             break
-            
-    #     if not new_book:
-    #         export_sheet(file_id)
-
-    #     filename = filename_old + '.xlsx'
-    #     book = openpyxl.load_workbook(filename)
-    #     sheet = book.active
-    #     rownum = sheet.max_row
-    #     colnum = sheet.max_column
-    #     for i in range(rownum-1):
-    #         i = i + 1
-    #         if sheet.cell(row=i+1, column=1).value == None:
-    #             break
-    #         string = ''
-    #         """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
-    #         provider = [0]
-    #         for j in range(colnum):
-    #             if j == 7:
-    #                 if provider[7] == 'CURR':
-    #                     provider.append(sheet.cell(row=i+1, column=j+1).value)
-    #                 elif not provider[7] == 'USD':
-    #                     curr = 0
-    #                     for x in range(len(currency_list)):
-    #                         if provider[7] in currency_list[x]:
-    #                             curr = x
-    #                             break
-
-    #                     converted = currency_rate[curr]*float(provider[6])
-    #                     provider.append(converted)
-    #                 else:
-    #                     provider.append(sheet.cell(row=i+1,column=j+1).value)
-    #             elif j == 9:
-    #                 provider.append(str(sheet.cell(row=i+1, column=j+1).value))
-    #             else:
-    #                 provider.append(sheet.cell(row=i+1, column=j+1).value)
-    #             if j < 5:
-    #                 string = string + str(sheet.cell(row=i+1, column=j+1).value).encode("utf-8")
-    #             else:
-    #                 pass
-
-    #         provider[0] = hash(string)
-    #         provider.append(0)
-    #         if not provider[10] == today:
-    #             cell_fill = str(sheet.cell(row=i+1, column=8).fill)
-    #             index = cell_fill.rfind('rgb=')+4
-    #             color = cell_fill[index:index+10]
-    #             # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
-    #             if color == 'FFFF0000':
-    #                 provider[11] = 1
-    #             elif color == 'FF008000':
-    #                 provider[11] = -1
-
-    #         self.insert(root, self.node(provider[0], provider))
-
     # """Database build differs from source build in that it extracts cell formatting for certian conditions,
     # to test and see if cells are properly highlighted, works directly with google sheets"""
     def database_build(self, root, edate, client):
@@ -165,6 +88,8 @@ class bst():
         if not found:
             book = client.create(filename) 
             sheet = book.get_worksheet(0)
+            file_id = find_file_id(filename)
+            format_cell_alignment(file_id)
             print ("New sheet created. Sheet created is for %s" %str(edate))
             return
 
@@ -194,22 +119,17 @@ class bst():
                             break
                     converted = currency_rate[curr]*float(provider[6])
                     provider[8] = converted
+            try:
+                if provider[11] == '':
+                    provider[11] = '-----'
+            except IndexError:
+                provider.append('-----')
+
+            provider[10] = convert_date(provider[10])
+            if provider[10] < edate:
+                provider[11] = '-----'
 
             self.insert(root, self.node(provider[0], provider))
-
-        #     provider[0] = hash(string)
-        #     provider.append(0)
-        #     if not provider[10] == today:
-        #         cell_fill = str(sheet.cell(row=i+1, column=8).fill)
-        #         index = cell_fill.rfind('rgb=')+4
-        #         color = cell_fill[index:index+10]
-        #         # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
-        #         if color == 'FFFF0000':
-        #             provider[11] = 1
-        #         elif color == 'FF008000':
-        #             provider[11] = -1
-
-        #     self.insert(root, self.node(provider[0], provider))
 
 
 
@@ -234,15 +154,16 @@ class bst():
                 # """Comparing rates of various nodes, typecasting to float"""
                 # """Price decreased"""
                 elif float(root.data[8]) > float(node.data[8]):
-                    node.data[11] = -1
+                    node.data[11] = 'Decrease'
                     root.data = node.data
                 # """Price increased"""
                 elif float(root.data[8]) < float(node.data[8]):
-                    node.data[11] = 1
+                    node.data[11] = 'Increase'
                     root.data = node.data
                 # """no change"""
                 else:
-                    pass
+                    node.data[11] = '------'
+                    root.data = node.data
                     
     def in_order_print(self, root):
         if not root:
@@ -278,7 +199,8 @@ class bst():
                     pass
 
             provider[0] = hash(string)
-            provider.append(0)
+            provider[10] = convert_date(provider[10])
+            provider.append('-----')
             self.insert(root, self.node(provider[0], provider))
         # os.remove(filename)
 
@@ -290,75 +212,20 @@ class bst():
         self.to_database(root.l_child, templist)
         self.to_database(root.r_child, templist)
 
-    # def write(self, root, edate, upload_list):
-    #     book = xlwt.Workbook(style_compression=2)
-    #     sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
-    #     filename = 'Rates for ' + str(edate) + '.xls'
-    #     final_list = []
-    #     length = 10 #lenght of provider list - 2 (hash key and change value)
-
-    #     self.to_database(root, final_list)
-    #     for x in range(len(final_list)):
-    #         provider = final_list.pop(0)
-    #         # print len(final_list)
-    #         for k in range(length):
-    #             if x == 0:
-    #                 st = xlwt.easyxf('align: horiz center')
-    #                 sheet.write(x,k,provider[k+1],st)
-    #             else:
-    #                 if k == 5:
-    #                     st = xlwt.easyxf('align: horiz right')
-    #                     sheet.write(x,k,provider[k+1],st)
-    #                 elif k == 7:
-    #                     # price increased
-    #                     if provider[11] == 1:
-    #                         st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
-    #                         sheet.write(x,k,float(provider[k+1]),st)
-    #                         # print "marker 1"
-    #                     # price decreased
-    #                     elif provider[11] == -1:
-    #                         st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
-    #                         sheet.write(x,k,float(provider[k+1]),st)
-    #                         # print "marker 2"
-    #                     else:
-    #                         st = xlwt.easyxf('align: horiz right')
-    #                         sheet.write(x,k,provider[k+1],st)
-    #                         # print "marker 3"
-    #                 else:
-    #                     st = xlwt.easyxf('align: horiz left')
-    #                     sheet.write(x,k,provider[k+1],st)
-    #                     # print "marker 4"
-
-    #     sheet.col(0).width = 6500
-    #     sheet.col(1).width = 8000
-    #     sheet.col(2).width = 2500
-    #     sheet.col(6).width = 2500 
-    #     sheet.col(8).width = 5000
-    #     sheet.set_panes_frozen(True)
-    #     sheet.set_horz_split_pos(1)
-    #     book.save(filename)
-
-    #     for x in range(len(upload_list)):
-    #         if str(edate) == upload_list[x]:
-    #             return 'Succesfully written. Data for ', str(edate), 'has alredy been queued to upload.'
-
-    #     # """If edate isn't found already in list, add it to list to upload"""
-    #     upload_list.append(str(edate))
-    #     return 'Successfully written. Data for ', str(edate), 'is now queued to upload.'
-
-    def write(self, root, edate, client, rowcount):
+    def write(self, root, edate, client):
         filename = 'Rates for ' + str(edate)
         book = client.open(filename)
         sheet = book.get_worksheet(0)
         sheet.clear()
         final_list = []
         self.to_database(root, final_list)
-
+        rowcount = len(final_list)
+        sheet.resize(rows=rowcount, cols=11)
         # cell_list = sheet.range(1,1,1,10)
         # print cell_list
         for i in range(rowcount):
             i = i + 1
-            cell_list = sheet.range(i,1,i,10)
+            cell_list = sheet.range(i,1,i,11)
             provider = final_list.pop(0)
             index = 1
             for cell in cell_list:
@@ -366,6 +233,9 @@ class bst():
                 index = index + 1
 
             sheet.update_cells(cell_list)
+
+        file_id = find_file_id(filename)
+        conditional_format(file_id)
 
 """Convert class performs all file conversions"""
 class convert():
@@ -549,29 +419,8 @@ class format():
                         value = sheet.cell(x,y).value
                         mccmnc_val.append(value)
                         sheet_wr.write(x-row,4,value)
-                # # """Rate"""
-                # elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
-                #     rate_present = True
-                #     for x in range(len(currency_list)):
-                #         if sheet.cell(row,y).value in currency_dictionary[x][currency_list[x]]:
-                #             i = x
-                #             break
-                #     for x in range(row+1, rownum):
-                #         if sheet.cell(x,y).value == '-':
-                #             value = 0
-                #         else:
-                #             value = sheet.cell(x,y).value
-                #         sheet_wr.write(x-row,5,value)
-                #         sheet_wr.write(x-row,6,currency_list[i])
-                #         # """ Converting currencies here"""
-                #         if not currency_list[i] == 'USD':
-                #             converted = currency_rate[i]*float(value)
-                #         else:
-                #             converted = value
-                #         sheet_wr.write(x-row,7,converted)
-                #         sheet_wr.write(x-row,8, source)
-                #         sheet_wr.write(x-row,9, tomorrow)
-                # """Modified Rate
+
+                # """Rate"""
                 elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
                     rate_present = True
                     for x in range(len(currency_list)):
