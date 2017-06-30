@@ -588,7 +588,7 @@ def get_email_date(ind):
         if dict_val['name'] == 'Date':
             date = dict_val['value']
             
-    date = convert_date(date.encode('utf-8'))
+    date = convert_date_email(date.encode('utf-8'))
     return date
 
 def get_email_sender(ind):
@@ -775,11 +775,11 @@ def find_source_from_email(email_string):
         if source_exists == False:
             export_sheet('1rJlhCxJIy1DyYlzp8G9aVap505QBwxcTmiH9zleZzG4')
 
-def convert_date(date):
-    '''Returns a date-time object.
+def convert_date_email(date):
+    '''Returns a date-time object using a string. Used for the email methods.
     
     Args:
-        date: string of the date to be converted.
+        date: string of the date to be converted. Format example: 20 Jun 2017
         
     Returns:
         date_obj, the date-time object.    
@@ -793,6 +793,19 @@ def convert_date(date):
     end = date.index(find)
     date = date[start:end+len(find)].strip()
     date_format = "%d %b %Y"
+    date_obj = datetime.datetime.strptime(date, date_format)
+    return date_obj.date()
+
+def convert_date(date):
+    '''Returns a date-time object using a string.
+    
+    Args:
+        date: string of the date to be converted. Format example: 2017-06-20
+        
+    Returns:
+        date_obj, the date-time object.    
+    '''
+    date_format = "%Y-%m-%d"
     date_obj = datetime.datetime.strptime(date, date_format)
     return date_obj.date()
 
@@ -864,94 +877,6 @@ def remove_label(ind):
     messages = results['messages']
     mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ["Label_2"]}).execute()
 
-def format_cell_color(row, col, sheet_id, color):
-    """Formats the color of a spreadsheet cell.
-
-    Args:
-        row: row of the cell.
-        col: column of the cell.
-        sheet_id: ID of the sheet.
-        color: color of the cell.
-    """    
-    sheets_service = initialize_sheets_service()
-    
-    spreadsheet_id = sheet_id
-    
-    if color.lower() == 'red':
-        red = 1.0
-        green = 0.0
-        blue = 0.0
-    elif color.lower() == 'green':
-        red = 0.0
-        green = 0.502
-        blue = 0.0
-    else:
-        red = 1.0
-        green = 1.0
-        blue = 1.0
-
-    batch_update_spreadsheet_request_body = {
-        'requests': [
-            {
-                "repeatCell": {
-                    "range": {
-                        "sheetId": 0,
-                        "startRowIndex": row,
-                        "endRowIndex": row + 1,
-                        "startColumnIndex": col,
-                        "endColumnIndex": col + 1
-                    },
-                    "cell": {
-                        "userEnteredFormat": {
-                            "backgroundColor": {
-                                "red": red,
-                                "green": green,
-                                "blue": blue
-                        },
-                            "horizontalAlignment" : "RIGHT",
-                            "textFormat": {
-                            "fontSize": 10
-                            }
-                        }
-                    },
-                "fields": "userEnteredFormat(backgroundColor,textFormat,horizontalAlignment)"
-                }
-            }
-        ],
-    }
-    
-    request = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id, body=batch_update_spreadsheet_request_body)   
-    response = request.execute()
-    print("Changed cell color to " + color + ".")
-    
-def get_cell_color(row, col, sheet_id):
-    """Gets the color of a spreadsheet cell. Only gets red and green cells.
-
-    Args:
-        row: row of the cell.
-        col: column of the cell.
-        sheet_id: ID of the sheet.
-        
-    Returns:
-        color, the color of the cell. Returns None if there is no cell color formatting.
-    """    
-    sheets_service = initialize_sheets_service()
-    
-    spreadsheet_id = sheet_id
-    
-    cell = ('R' + str(row) + 'C' + str(col))
-    
-    request = sheets_service.spreadsheets().get(spreadsheetId=spreadsheet_id, includeGridData=True, ranges = cell)   
-    response = request.execute()
-    
-    sheets = response['sheets']
-    try: 
-        color = (sheets[0]['data'][0]['rowData'][0]['values'][0]['userEnteredFormat']['backgroundColor'].keys()[0])
-    except KeyError:
-        color = None
-    
-    return color
-        
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
