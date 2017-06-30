@@ -936,7 +936,11 @@ def format_cell_alignment(sheet_id):
         response = request.execute()
 
 def conditional_format(spreadsheet_id):
-    
+    """Conditionally formats the colors of spreadsheet rows based on a value in a cell.
+
+    Args:
+        spreadsheet_id: ID of the sheet.
+    """       
     sheets_service = initialize_sheets_service()
         
     myRange = {
