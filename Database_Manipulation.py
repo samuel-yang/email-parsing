@@ -76,22 +76,24 @@ class bst():
         found = False
         while days <10 and not found:
             try:
-                book = client.open(filename)
+                book = client.open(filename_old)
                 sheet = book.get_worksheet(0)
                 found = True
-                print ("Rate sheet for %s found." %str(edate))
+                print ("Rate sheet for %s found." %str(day_before))
             except SpreadsheetNotFound:
                 print ('No sheet for %s found.' %str(day_before))
                 day_before = day_before - timedelta(days=1)
+                filename_old = 'Rates for ' + str(day_before)
                 days = days + 1
 
-        if not found:
-            book = client.create(filename) 
-            sheet = book.get_worksheet(0)
+        if not found or day_before != edate:
+            newbook = client.create(filename) 
+            newsheet = newbook.get_worksheet(0)
             file_id = find_file_id(filename)
             format_cell_alignment(file_id)
             print ("New sheet created. Sheet created is for %s" %str(edate))
-            return
+            if not found:
+                return
 
         rownum = sheet.row_count
         colnum = sheet.col_count
@@ -107,9 +109,12 @@ class bst():
             else:
                 provider = [0]
                 provider = provider + temp
+                #print(provider)
                 string = ''
-                for i in range(5):
-                    string = string + str(temp[i]).encode('utf-8')
+                if len(temp[3]) == 1:
+                    temp[3] = '0' + str(temp[3])                
+                for j in range(4):
+                    string = string + str(temp[j]).encode('utf-8')
                 
                 provider[0] = hash(string)
                 if provider[7] != 'USD':
@@ -128,6 +133,15 @@ class bst():
             provider[10] = convert_date(provider[10])
             if provider[10] < edate:
                 provider[11] = '-----'
+            
+            for i in range(len(provider)):
+                if i == 0 or i == 8 or i == 10 or i == 11:
+                    pass
+                else:
+                    provider[i] = provider[i].encode('utf-8')
+                    print(provider[i])
+                    
+            print('DATABASE: ', provider)
 
             self.insert(root, self.node(provider[0], provider))
 
@@ -220,19 +234,44 @@ class bst():
         final_list = []
         self.to_database(root, final_list)
         rowcount = len(final_list)
+        #rowcount = 1
         sheet.resize(rows=rowcount, cols=11)
-        # cell_list = sheet.range(1,1,1,10)
-        # print cell_list
+        cell_list = sheet.range(1,1,1,10)
+        #print cell_list
         for i in range(rowcount):
             i = i + 1
             cell_list = sheet.range(i,1,i,11)
             provider = final_list.pop(0)
+            print(provider)
             index = 1
             for cell in cell_list:
                 cell.value = provider[index]
+                #print(cell.value)
                 index = index + 1
+            #print(cell_list)
+            #print('\n')
 
-            sheet.update_cells(cell_list)
+            try:
+                sheet.update_cells(cell_list)
+            except gspread.exceptions.RequestError:
+                provider.pop(0)
+                sheet.insert_row(provider, i)
+                sheet.delete_row(i+1)
+            
+        #cell_list = sheet.range(1,1,1,11)
+        #provider = final_list.pop(0)
+        #index = 1
+        #for cell in cell_list:
+        #    cell.value = provider[index]
+        #    index = index + 1
+        #sheet.update_cells(cell_list)           
+        
+        #for i in range(len(final_list)):
+        #    rows = i + 2
+        #    provider = final_list.pop(0)
+        #    provider.pop(0)
+        #    sheet.insert_row(provider, rows)
+            
 
         file_id = find_file_id(filename)
         conditional_format(file_id)

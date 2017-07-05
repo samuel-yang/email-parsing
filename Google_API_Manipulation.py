@@ -41,6 +41,7 @@ def get_credentials():
     if not credentials or credentials.invalid:
         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
         flow.user_agent = APPLICATION_NAME
+        flow.params['access_type'] = 'offline'
         if flags:
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
@@ -996,4 +997,4 @@ def conditional_format(spreadsheet_id):
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
-    sheets_service = initialize_sheets_service
+    sheets_service = initialize_sheets_service()

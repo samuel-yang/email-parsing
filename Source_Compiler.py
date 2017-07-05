@@ -33,6 +33,8 @@ def clx(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
+
 # """Monty Mobile"""
 def monty(filename, root, source, edate, upload_list):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
@@ -51,6 +53,7 @@ def monty(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Support to delete first row"""
 def silverstreet(filename, root, source, edate, upload_list):
@@ -88,6 +91,7 @@ def silverstreet(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Tata"""
 def tata(filename, root, source, edate, upload_list):
@@ -106,6 +110,7 @@ def tata(filename, root, source, edate, upload_list):
     rename_file(file_id, newname)
     # move_to_folder(file_id, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to "Processed" folder
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Tedexis"""
 def tedexis(filename, root, source, edate, upload_list):
@@ -124,6 +129,7 @@ def tedexis(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Agile Telecom"""
 def agile(filename, root, source, edate, upload_list):
@@ -154,6 +160,7 @@ def agile(filename, root, source, edate, upload_list):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """General Use Case"""
 # support for mmd, UPM, wavecell, centro, mitto, bics, openmarket, kddi, horisen, calltrade
@@ -171,7 +178,8 @@ def general(filename, root, source, edate, upload_list):
     newname = short + ' ' + str(edate) + ext
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
-
+    file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
@@ -228,23 +236,23 @@ def main():
     bst().database_build(header, check_date, client) 
     upload_list = []
 
-    while len(company_list) >= 0:
+    while len(company_list) > 0:
         
         try:
             file_to_process = company_list.pop()
         except IndexError:
             print ("No more files to be processed")
         # date change enters into if statement and builds last case
-        if check_date != file_to_process[3] or len(company_list) == 0:
+        if check_date != file_to_process[3]:
             #write to document here
             bst().write(header, check_date, client)
-            while check_date <= file_to_process[3]:
+            while check_date < file_to_process[3]:
                 check_date = check_date + timedelta(days=1)
                 bst().database_build(header, check_date, client)
-                if check_date == file_to_process[3]:
-                    break
-                else:
-                    bst().write(header, check_date, client)
+                #if check_date == file_to_process[3]:
+                    #break
+                #else:
+                bst().write(header, check_date, client)
 
         processed = False
         print "\nFile currently being processed is: ", file_to_process[0]
@@ -310,10 +318,13 @@ def main():
         check_date = file_to_process[3]
 
     # BUILDS TO CURRENT DAY
+    bst().write(header, check_date, client)
     while check_date < date.today():
         check_date = check_date + timedelta(days=1)
         bst().database_build(header, check_date, client)
         bst().write(header, check_date, client)
+    
+    print("Source Compiler has finished running.")
 
 # def main():
 #     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
