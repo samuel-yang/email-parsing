@@ -152,12 +152,12 @@ class bst():
                 if root.l_child is None:
                     root.l_child = node
                 else:
-                    self.insert(root.l_child, node)
+                    self.insert(root.l_child, node, change_root)
             elif root.key < node.key:
                 if root.r_child is None:
                     root.r_child = node
                 else:
-                    self.insert(root.r_child, node)
+                    self.insert(root.r_child, node, change_root)
             elif root.key == node.key:
                 if root.data[8] == 'Converted Rate':
                     pass
@@ -227,7 +227,7 @@ class bst():
             provider[10] = convert_date(provider[10])
             provider.append('-----')
 
-            self.insert(root, self.node(provider[0], provider, change_root))
+            self.insert(root, self.node(provider[0], provider), change_root)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
     def to_database(self, root, templist):
