@@ -10,14 +10,14 @@
     forex_python.converter - exchange rate converter
     Google_Drive_Manipulation - using the Google Dirve and Sheets API"""
 
-import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, openpyxl
+import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, openpyxl, gspread
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
 from xlutils.copy import copy
-from gspread import *
+#from gspread import *
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -80,7 +80,7 @@ class bst():
                 sheet = book.get_worksheet(0)
                 found = True
                 print ("Rate sheet for %s found." %str(day_before))
-            except SpreadsheetNotFound:
+            except gspread.exceptions.SpreadsheetNotFound:
                 print ('No sheet for %s found.' %str(day_before))
                 day_before = day_before - timedelta(days=1)
                 filename_old = 'Rates for ' + str(day_before)
@@ -112,7 +112,8 @@ class bst():
                 #print(provider)
                 string = ''
                 if len(temp[3]) == 1:
-                    temp[3] = '0' + str(temp[3])                
+                    print('Adding 0 to single digit')
+                    provider[4] = '0' + str(provider[4])                
                 for j in range(4):
                     string = string + str(temp[j]).encode('utf-8')
                 
@@ -138,8 +139,9 @@ class bst():
                 if i == 0 or i == 8 or i == 10 or i == 11:
                     pass
                 else:
-                    provider[i] = provider[i].encode('utf-8')
-                    print(provider[i])
+                    temp = str(provider[i]).decode('utf-8')
+                    provider[i] = temp
+                    #print(provider[i])
                     
             print('DATABASE: ', provider)
 
@@ -254,6 +256,7 @@ class bst():
             try:
                 sheet.update_cells(cell_list)
             except gspread.exceptions.RequestError:
+                print('Error entered')
                 provider.pop(0)
                 sheet.insert_row(provider, i)
                 sheet.delete_row(i+1)
