@@ -101,7 +101,6 @@ class bst():
         if full == []:
             return
         full.pop(0)
-        print ("\n\n\n All values retreived.\n")
         for i in range(len(full)):
             temp = full.pop(0)
             if temp[0] == '':
@@ -109,13 +108,11 @@ class bst():
             else:
                 provider = [0]
                 provider = provider + temp
-                #print(provider)
                 string = ''
                 if len(temp[3]) == 1:
-                    print('Adding 0 to single digit')
                     provider[4] = '0' + str(provider[4])                
-                for j in range(4):
-                    string = string + str(temp[j]).encode('utf-8')
+                for j in range(5):
+                    string = string + str(provider[j+1]).decode('utf-8')
                 
                 provider[0] = hash(string)
                 if provider[7] != 'USD':
@@ -141,9 +138,6 @@ class bst():
                 else:
                     temp = str(provider[i]).decode('utf-8')
                     provider[i] = temp
-                    #print(provider[i])
-                    
-            print('DATABASE: ', provider)
 
             self.insert(root, self.node(provider[0], provider))
 
@@ -210,15 +204,14 @@ class bst():
             for j in range(colnum):
                 provider.append(sheet.cell(i,j).value) 
                 if j < 5:
-                    string = string + str(sheet.cell(i,j).value).encode("utf-8")
+                    string = string + str(sheet.cell(i,j).value).decode("utf-8")
                 else:
                     pass
-
+            
             provider[0] = hash(string)
             provider[10] = convert_date(provider[10])
             provider.append('-----')
             self.insert(root, self.node(provider[0], provider))
-        # os.remove(filename)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
     def to_database(self, root, templist):
@@ -236,31 +229,28 @@ class bst():
         final_list = []
         self.to_database(root, final_list)
         rowcount = len(final_list)
-        #rowcount = 1
         sheet.resize(rows=rowcount, cols=11)
         cell_list = sheet.range(1,1,1,10)
-        #print cell_list
+        full_update = []
         for i in range(rowcount):
             i = i + 1
             cell_list = sheet.range(i,1,i,11)
             provider = final_list.pop(0)
-            print(provider)
             index = 1
             for cell in cell_list:
                 cell.value = provider[index]
-                #print(cell.value)
                 index = index + 1
-            #print(cell_list)
-            #print('\n')
+            full_update = full_update + cell_list
 
-            try:
-                sheet.update_cells(cell_list)
-            except gspread.exceptions.RequestError:
-                print('Error entered')
-                provider.pop(0)
-                sheet.insert_row(provider, i)
-                sheet.delete_row(i+1)
-            
+            #try:
+                #sheet.update_cells(cell_list)
+            #except gspread.exceptions.RequestError:
+                #print('Error entered')
+                #provider.pop(0)
+                #sheet.insert_row(provider, i)
+                #sheet.delete_row(i+1)
+        
+        sheet.update_cells(full_update)
         #cell_list = sheet.range(1,1,1,11)
         #provider = final_list.pop(0)
         #index = 1
