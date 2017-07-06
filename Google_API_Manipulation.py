@@ -994,6 +994,70 @@ def conditional_format(spreadsheet_id):
     result = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
                                                 body=body).execute()    
 
+def freeze_first_row(spreadsheet_id, rowCount):
+    """Freezes the first row of the spreadsheet.
+
+    Args:
+        spreadsheet_id: ID of the sheet.
+        rowCount: number of rows.
+    """     
+    sheets_service = initialize_sheets_service()
+    
+    requests = []
+    
+    requests.append({
+        "updateSheetProperties": {
+              "fields": "*",
+              "properties": {
+                  "title": 'Sheet1',
+                  "gridProperties": {
+                      "frozenRowCount": 1,
+                      "rowCount": rowCount,
+                      "columnCount": 11,
+                  }
+              }
+        }
+    })
+    
+    body = {
+        'requests': requests
+    }
+    
+    result = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
+                                                       body=body).execute()  
+
+def unfreeze_first_row(spreadsheet_id, rowCount):
+    """Unreezes the first row of the spreadsheet.
+
+    Args:
+        spreadsheet_id: ID of the sheet.
+        rowCount: number of rows.
+    """     
+    sheets_service = initialize_sheets_service()
+    
+    requests = []
+    
+    requests.append({
+        "updateSheetProperties": {
+              "fields": "*",
+              "properties": {
+                  "title": 'Sheet1',
+                  "gridProperties": {
+                      "frozenRowCount": 0,
+                      "rowCount": rowCount,
+                      "columnCount": 11,
+                  }
+              }
+        }
+    })
+    
+    body = {
+        'requests': requests
+    }
+    
+    result = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
+                                                       body=body).execute()
+
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
