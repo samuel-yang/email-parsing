@@ -64,7 +64,7 @@ class bst():
 
     # """Database build differs from source build in that it extracts cell formatting for certian conditions,
     # to test and see if cells are properly highlighted, works directly with google sheets"""
-    def database_build(self, root, edate, client):
+    def database_build(self, root, edate, client, change_root):
         filename = 'Rates for ' + str(edate)
         # file_id = find_file_id(filename)
         # if file_id != None:
@@ -145,11 +145,11 @@ class bst():
                     
             print('DATABASE: ', provider)
 
-            self.insert(root, self.node(provider[0], provider))
+            self.insert(root, self.node(provider[0], provider), change_root)
 
 
 
-    def insert(self, root, node):
+    def insert(self, root, node, change_root):
         if root is None:
             root = node
         else:
@@ -172,14 +172,29 @@ class bst():
                 elif float(root.data[8]) > float(node.data[8]):
                     node.data[11] = 'Decrease'
                     root.data = node.data
+                    self.insert_new(change_root, node)
                 # """Price increased"""
                 elif float(root.data[8]) < float(node.data[8]):
                     node.data[11] = 'Increase'
                     root.data = node.data
+                    self.insert_new(change_root, node)
                 # """no change"""
                 else:
                     node.data[11] = '------'
                     root.data = node.data
+
+    def insert_new(self, root, node):
+        if root.key > node.key:
+            if root.l_child is None:
+                root.l_child = node
+            else:
+                self.insert(root.l_child, node)
+        elif root.key < node.key:
+            if root.r_child is None:
+                root.r_child = node
+            else:
+                self.insert(root.r_child, node)
+
                     
     def in_order_print(self, root):
         if not root:
@@ -197,7 +212,7 @@ class bst():
 
     """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
         root taken in as argument"""
-    def source_build(self, root, filename):
+    def source_build(self, root, filename, change_root):
         book = xlrd.open_workbook(filename, 'rb')
         sheet = book.sheet_by_index(0)
         rownum = sheet.nrows #should be 10
@@ -217,7 +232,7 @@ class bst():
             provider[0] = hash(string)
             provider[10] = convert_date(provider[10])
             provider.append('-----')
-            self.insert(root, self.node(provider[0], provider))
+            self.insert(root, self.node(provider[0], provider, change_root))
         # os.remove(filename)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""

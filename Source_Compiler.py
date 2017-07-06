@@ -16,7 +16,7 @@ sys.setdefaultencoding('utf-8')
 client = authorize(get_credentials())
 
 # """CLX Networks"""
-def clx(filename, root, source, edate, upload_list):
+def clx(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = convert().excel_tsv_to_csv(filename)
     filename2 = convert().csv_to_excel(filename1)
@@ -24,7 +24,7 @@ def clx(filename, root, source, edate, upload_list):
     if filename3 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
-    bst().source_build(root, filename3)
+    bst().source_build(root, filename3, change_header)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -36,7 +36,7 @@ def clx(filename, root, source, edate, upload_list):
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Monty Mobile"""
-def monty(filename, root, source, edate, upload_list):
+def monty(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = convert().csv_to_excel(filename)
     filename2 = format().excel_format(filename1, source, 0, edate)
@@ -44,7 +44,7 @@ def monty(filename, root, source, edate, upload_list):
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
     filename3 = format().monty_is_special(filename2, filename1)
-    bst().source_build(root, filename3) 
+    bst().source_build(root, filename3, change_header) 
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -56,7 +56,7 @@ def monty(filename, root, source, edate, upload_list):
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Support to delete first row"""
-def silverstreet(filename, root, source, edate, upload_list):
+def silverstreet(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     book = xlrd.open_workbook(filename, 'rb')
     sheet = book.sheet_by_index(0)
@@ -82,7 +82,7 @@ def silverstreet(filename, root, source, edate, upload_list):
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
-    bst().source_build(root, filename1)
+    bst().source_build(root, filename1, change_header)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -94,13 +94,13 @@ def silverstreet(filename, root, source, edate, upload_list):
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Tata"""
-def tata(filename, root, source, edate, upload_list):
+def tata(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = format().excel_format(filename, source, 1, edate)
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
-    bst().source_build(root, filename1)
+    bst().source_build(root, filename1, change_header)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -113,14 +113,14 @@ def tata(filename, root, source, edate, upload_list):
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Tedexis"""
-def tedexis(filename, root, source, edate, upload_list):
+def tedexis(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
     filename2 = format().excel_filter(filename1)
-    bst().source_build(root, filename2)
+    bst().source_build(root, filename2, change_header)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -132,7 +132,7 @@ def tedexis(filename, root, source, edate, upload_list):
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Agile Telecom"""
-def agile(filename, root, source, edate, upload_list):
+def agile(filename, root, source, edate, upload_list, change_header):
     excel = win32com.client.gencache.EnsureDispatch('Excel.Application')
     cd_path = os.getcwd()
     wb = excel.Workbooks.Open(cd_path + '\\' + filename)
@@ -151,7 +151,7 @@ def agile(filename, root, source, edate, upload_list):
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
-    bst().source_build(root, filename1)
+    bst().source_build(root, filename1, change_header)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -164,13 +164,13 @@ def agile(filename, root, source, edate, upload_list):
 
 # """General Use Case"""
 # support for mmd, UPM, wavecell, centro, mitto, bics, openmarket, kddi, horisen, calltrade
-def general(filename, root, source, edate, upload_list):
+def general(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
-    bst().source_build(root, filename1)
+    bst().source_build(root, filename1, change_header)
     index = filename.rfind('.')
     short = filename[:index]
     index = len(filename) - index
@@ -190,6 +190,7 @@ def main():
     # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
     header = bst().node(title[0], title)
+    change_header = bst().node(title[0], title)
 
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
@@ -233,7 +234,7 @@ def main():
     # as long as there is something in the company list
 
     # first build of database here
-    bst().database_build(header, check_date, client) 
+    bst().database_build(header, check_date, client, change_header) 
     upload_list = []
 
     while len(company_list) > 0:
@@ -248,7 +249,7 @@ def main():
             bst().write(header, check_date, client)
             while check_date < file_to_process[3]:
                 check_date = check_date + timedelta(days=1)
-                bst().database_build(header, check_date, client)
+                bst().database_build(header, check_date, client, change_header)
                 #if check_date == file_to_process[3]:
                     #break
                 #else:
@@ -265,39 +266,39 @@ def main():
                 index = len(file_to_process[0]) - index
                 ext = file_to_process[0][-index:]
                 if ext == '.xls' or ext == '.xlsx':
-                    status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print "Status of: ", file_to_process[0], ' is: ', status
                     processed = True
             # """Special use case scenario"""
             elif j in range(len(special_dictionary)):
                 # """Tedexis"""
                 if file_to_process[1] == special_dictionary[j] and j == 0:
-                    status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print "Status of: ", file_to_process[0], ' is: ', status
                     processed = True                
                 # """Monty Mobile"""
                 elif file_to_process[1] == special_dictionary[j] and j == 1:
-                    status = monty(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = monty(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
                 # """Tata Communications"""
                 elif file_to_process[1] == special_dictionary[j] and j == 2:
-                    status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
                 # """Silverstreet"""
                 elif file_to_process[1] == special_dictionary[j] and j == 3:
-                    status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
                 # """CLX Networks"""
                 elif file_to_process[1] == special_dictionary[j] and j == 4:
-                    status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
                 # """Agile Telecom"""
                 elif file_to_process[1] == special_dictionary[j] and j == 5:
-                    status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list)
+                    status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True            
                 # """Not special case"""
@@ -321,7 +322,7 @@ def main():
     bst().write(header, check_date, client)
     while check_date < date.today():
         check_date = check_date + timedelta(days=1)
-        bst().database_build(header, check_date, client)
+        bst().database_build(header, check_date, client, change_header)
         bst().write(header, check_date, client)
     
     print("Source Compiler has finished running.")
