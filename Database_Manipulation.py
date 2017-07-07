@@ -79,6 +79,7 @@ class bst():
                 book = client.open(filename_old)
                 sheet = book.get_worksheet(0)
                 found = True
+                unfreeze_first_row(find_file_id(filename), sheet.row_count())
                 print ("Rate sheet for %s found." %str(day_before))
             except gspread.exceptions.SpreadsheetNotFound:
                 print ('No sheet for %s found.' %str(day_before))
@@ -376,6 +377,7 @@ class bst():
 
         file_id = find_file_id(filename)
         conditional_format(file_id)
+        freeze_first_row(file_id, rowcount)
         print ("Sheet has been formatted, %s has been written succesfully." %filename)
 
 """Convert class performs all file conversions"""

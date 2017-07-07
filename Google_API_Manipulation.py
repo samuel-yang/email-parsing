@@ -990,10 +990,10 @@ def conditional_format(spreadsheet_id):
     requests.append({
         "autoResizeDimensions": {
           "dimensions": {
-            "sheetId": sheetId,
+            "sheetId": 0,
             "dimension": "COLUMNS",
             "startIndex": 0,
-            "endIndex": 1
+            "endIndex": 2
           }
         }
     })    
