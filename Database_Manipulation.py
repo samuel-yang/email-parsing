@@ -253,8 +253,41 @@ class bst():
         self.pre_order_print(root.l_child)
         self.pre_order_print(root.r_child)
 
-    def price_build(self, root, sheet):
-        print ("blah")
+    def price_build(self, root, client, filename):
+        try:
+            book = client.open(filename)
+        except gspread.exceptions.SpreadsheetNotFound:
+            print ("%s was not found.  Please check to make sure a pricing sheet exists." %filename)
+            return
+        sheet = book.get_worksheet(0)
+        values = sheet.get_all_values()
+        values.pop(0)
+        notify_list = []
+        for i in range(len(values)):
+            temp = values.pop(0)
+            if temp[0] == '':
+                pass
+            else:
+                provider = [0]
+                provider = provider + temp
+                string = ''
+                if len(temp[3]) == 1:
+                    provider[4] = '0' + str(provider[4])                
+                for j in range(5):
+                    string = string + str(provider[j+1]).decode('utf-8')
+                
+                provider[0] = hash(string)
+
+            for i in range(len(provider)):
+                if i == 0 or i == 8 or i == 10 or i == 11:
+                    pass
+                else:
+                    temp = str(provider[i]).decode('utf-8')
+                    provider[i] = temp
+
+            self.insert_price(root, self.node(provider[0], provider), notify_list)
+
+
 
     # """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
     #     root taken in as argument"""
@@ -293,6 +326,7 @@ class bst():
         filename = 'Rates for ' + str(edate)
         book = client.open(filename)
         sheet = book.get_worksheet(0)
+        print ("%s found, now writing to sheet." %filename)
         sheet.clear()
         final_list = []
         self.to_database(root, final_list)
@@ -317,6 +351,7 @@ class bst():
                 #provider.pop(0)
                 #sheet.insert_row(provider, i)
                 #sheet.delete_row(i+1)
+        print ("List of cell values populated, now preparing to upload.")
         
         sheet.update_cells(full_update)
         #cell_list = sheet.range(1,1,1,11)
@@ -336,6 +371,7 @@ class bst():
 
         file_id = find_file_id(filename)
         conditional_format(file_id)
+        print ("Sheet has been formatted, %s has been written succesfully." %filename)
 
 """Convert class performs all file conversions"""
 class convert():
