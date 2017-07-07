@@ -282,9 +282,13 @@ class bst():
                 
                 string = string + str(provider[9]).decode('utf-8')
                 provider[0] = hash(string)
+                # """Catch if MCC and MNC are missing
+                if provider[3] == '' and provider[4] == '' and provider[5] != '':
+                    provider[3] = provider[5][:2]
+                    provider[4] = provider[5][3:4]
 
             for i in range(len(provider)):
-                if i == 0 or i == 8 or i == 10 or i == 11:
+                if i == 0 or i == 6 or i == 7 or i == 8 or i == 10 or i == 11:
                     pass
                 else:
                     temp = str(provider[i]).decode('utf-8')
@@ -292,7 +296,7 @@ class bst():
 
             self.insert_price(root, self.node(provider[0], provider), notify_list)
 
-
+        self.pre_order_print(root)
 
     # """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
     #     root taken in as argument"""
