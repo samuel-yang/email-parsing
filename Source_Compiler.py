@@ -1,5 +1,5 @@
 import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys
-# import win32com.client
+import win32com.client
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
@@ -159,7 +159,7 @@ def agile(filename, root, source, edate, upload_list, change_header):
     newname = short + ' ' + str(edate) + ext
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
-    file_clean(filename)
+    #file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """General Use Case"""
