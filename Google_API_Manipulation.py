@@ -279,14 +279,36 @@ def dl_folder(folder_id):
             # Process change
             file_id = file.get('id')
             file_name = file.get('name').encode('utf-8')
-            company_list.append(file_name)
-            #file_name_no_extension = (".").join(file.get('name').split(".")[:-1]).encode('utf-8')
+            file_name_no_extension = (".").join(file.get('name').split(".")[:-1]).encode('utf-8')
             extension = file.get('name').split(".")[-1].encode('utf-8')
             
             if (extension == 'xls') or (extension == 'xlsx') or (extension == 'csv') or (extension == 'pdf'):
                 files_exist = True
                 print ("Found file: %s (ID: %s)" % (file_name, file_id))
+                count = 0
+                temp = file_name_no_extension
+                multiple = False
+                while True:
+                    if not os.path.isfile(temp + "." + extension):
+                        break
+                    else:
+                        count = count + 1
+                        temp = temp + "(" + str(count) + ")"
+                        multiple = True
+                if multiple:
+                    company_list.append(temp + "." + extension)
+                while count > 0:
+                    if count == 1:
+                        os.rename(file_name_no_extension + "." + extension, temp + "." + extension)
+                    else:
+                        temp = file_name_no_extension + "(" + str(count - 1) + ")"
+                        temp2 = file_name_no_extension + "(" + str(count) + ")"
+                        os.rename(temp + "." + extension, temp2 + "." + extension)
+                    count = count - 1                    
+                    
                 dl_file(file_id, file_name)
+                if not multiple:
+                    company_list.append(file_name)
                     
         page_token = response.get('nextPageToken', None)
         if page_token is None:
@@ -712,6 +734,7 @@ def get_email_attachment_list(dl_list):
     attach_list = []
     remove = []    
     loop_break = True
+    dl_list.reverse()
     while (ind < last_ind):
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
@@ -722,9 +745,25 @@ def get_email_attachment_list(dl_list):
             sublist.append(sender[0])
             sublist.append(sender[1])
             sublist.append(date)
-            for i in range(len(dl_list)):
-                if attachment == dl_list[i]:
+# FIX METHOD --------------------------------------------------------------------
+            while len(dl_list) > 0:
+                i = len(dl_list) - 1
+                print("dl_list: ", dl_list)
+                temp = dl_list[i]
+                index = temp.rfind(".")
+                file_short = temp[:index]
+                multiple = False
+                if file_short[len(file_short) - 3] == '(' and file_short[len(file_short) - 1] == ')':
+                    print("entered if statement")
+                    multiple = True
+                    sublist[0] = dl_list[i]
+                if attachment == dl_list[i] or multiple:
+                    print(dl_list[i])
                     attach_list.append(sublist)
+                    print(attach_list)
+                    print("dl_list before pop: ", dl_list)
+                    dl_list.pop(i)
+                    print("dl_list after pop: ", dl_list)
             if attachment == "":
                 del sublist
             else:
@@ -738,8 +777,8 @@ def get_email_attachment_list(dl_list):
             #break
         remove.append(ind)
         ind = ind + 1
-    for index in remove:
-        remove_label(remove[0])
+    #for index in remove:
+        #remove_label(remove[0])
 
     return attach_list
 
@@ -1072,3 +1111,7 @@ def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
     sheets_service = initialize_sheets_service()
+    
+    
+dl_list = dl_folder('0BzlU44AWMToxMXBRSVk5aG1wbG8')
+print(get_email_attachment_list(dl_list))
