@@ -114,6 +114,7 @@ class bst():
                 for j in range(5):
                     string = string + str(provider[j+1]).decode('utf-8')
                 
+                string = string + str(provider[9]).decode('utf-8')
                 provider[0] = hash(string)
                 if provider[7] != 'USD':
                     for j in range(len(currency_list)):
@@ -166,12 +167,14 @@ class bst():
                 elif float(root.data[8]) > float(node.data[8]):
                     node.data[11] = 'Decrease'
                     root.data = node.data
-                    self.insert_new(change_root, node)
+                    temp = self.node(root.key, root.data)
+                    self.insert_new(change_root, temp)
                 # """Price increased"""
                 elif float(root.data[8]) < float(node.data[8]):
                     node.data[11] = 'Increase'
                     root.data = node.data
-                    self.insert_new(change_root, node)
+                    temp = self.node(root.key, root.data)
+                    self.insert_new(change_root, temp)
                 # """no change"""
                 else:
                     node.data[11] = '------'
@@ -276,6 +279,7 @@ class bst():
                 for j in range(5):
                     string = string + str(provider[j+1]).decode('utf-8')
                 
+                string = string + str(provider[9]).decode('utf-8')
                 provider[0] = hash(string)
 
             for i in range(len(provider)):
@@ -308,6 +312,7 @@ class bst():
                 else:
                     pass
             
+            string = string + str(provider[9]).decode('utf-8')
             provider[0] = hash(string)
             provider[10] = convert_date(provider[10])
             provider.append('-----')
