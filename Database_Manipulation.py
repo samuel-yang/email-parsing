@@ -178,18 +178,67 @@ class bst():
                     root.data = node.data
 
     def insert_new(self, root, node):
-        if root.key > node.key:
-            if root.l_child is None:
-                root.l_child = node
-            else:
-                self.insert(root.l_child, node)
-        elif root.key < node.key:
-            if root.r_child is None:
-                root.r_child = node
-            else:
-                self.insert(root.r_child, node)
+        temp = node.data
+        temp[6] = temp[8]
+        temp[7] = float(0)
+        temp[8] = float(0)
+        node.data = temp
+        if root is None:
+            root = node
+        else:
+            if root.key > node.key:
+                if root.l_child is None:
+                    root.l_child = node
+                else:
+                    self.insert_new(root.l_child, node)
+            elif root.key < node.key:
+                if root.r_child is None:
+                    root.r_child = node
+                else:
+                    self.insert_new(root.r_child, node)
 
+    def insert_price(self, root, node, notify_list):
+        if root is None:
+            root = node
+        else:
+            """if statements are based on hash key of the strings built"""
+            if root.key > node.key:
+                if root.l_child is None:
+                    root.l_child = node
+                else:
+                    self.insert(root.l_child, node, change_root)
+            elif root.key < node.key:
+                if root.r_child is None:
+                    root.r_child = node
+                else:
+                    self.insert(root.r_child, node, change_root)
+            elif root.key == node.key:
+                if root.data[6] == 'Cost USD':
+                    pass
+                else:
+                    root.data[7] = node.data[7]
+                    profit = (root.data[7] - root.data[6])/root.data[6]
+                    root.data[8] = profit
+                    # """Catches if profit is too low, and adds it to list so that it can be returned"""
+                    # """Comparing rates of various nodes, typecasting to float"""
+                    # """Price decreased"""
+                    if float(root.data[6]) > float(node.data[6]):
+                        node.data[11] = 'Decrease'
+                        root.data = node.data
+                        self.insert_new(change_root, node)
+                    # """Price increased"""
+                    elif float(root.data[6]) < float(node.data[6]):
+                        node.data[11] = 'Increase'
+                        root.data = node.data
+                        self.insert_new(change_root, node)
+                    # """no change"""
+                    else:
+                        node.data[11] = '------'
+                        root.data = node.data
                     
+                    if profit < .2:
+                        notify_list.append(node.data)
+    
     def in_order_print(self, root):
         if not root:
             return
@@ -204,8 +253,11 @@ class bst():
         self.pre_order_print(root.l_child)
         self.pre_order_print(root.r_child)
 
-    """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
-        root taken in as argument"""
+    def price_build(self, root, sheet):
+        print ("blah")
+
+    # """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
+    #     root taken in as argument"""
     def source_build(self, root, filename, change_root):
         book = xlrd.open_workbook(filename, 'rb')
         sheet = book.sheet_by_index(0)
