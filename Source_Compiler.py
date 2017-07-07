@@ -219,9 +219,8 @@ def main():
 
     company_list = get_email_attachment_list(dl_list)
 
-    if company_list==None:
-        company_list=[]
-        print ("No 'New' messages in the Inbox")
+    if company_list == []:
+        print ("No 'New' messages in the Inbox, Source_Compiler has run to completion.")
         return
     else:
         print "Email attachment list is: ", company_list 

@@ -705,7 +705,6 @@ def get_email_attachment_list(dl_list):
         messages = results['messages']
     else:
         messages=[]
-        print "No 'New' messages in the Inbox"
     
     ind = 0
     last_ind = len(messages)
@@ -986,6 +985,17 @@ def conditional_format(spreadsheet_id):
           },
         "index": 0
       }
+    })
+
+    requests.append({
+        "autoResizeDimensions": {
+          "dimensions": {
+            "sheetId": sheetId,
+            "dimension": "COLUMNS",
+            "startIndex": 0,
+            "endIndex": 1
+          }
+        }
     })    
     
     body = {
