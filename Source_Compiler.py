@@ -221,6 +221,9 @@ def main():
 
     if company_list == []:
         print ("No 'New' messages in the Inbox, Source_Compiler has run to completion.")
+        for i in range(len(dl_list)):
+            filename = dl_list.pop()
+            file_clean(filename)
         return
     else:
         print "Email attachment list is: ", company_list 
