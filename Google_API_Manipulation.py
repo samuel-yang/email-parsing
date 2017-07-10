@@ -293,6 +293,8 @@ def dl_folder(folder_id):
                         break
                     else:
                         count = count + 1
+                        if temp[len(temp) - 3] == '(' and temp[len(temp) - 1] == ')':
+                            temp = temp[:len(temp) - 3]                        
                         temp = temp + "(" + str(count) + ")"
                         multiple = True
                 if multiple:
@@ -723,6 +725,7 @@ def get_email_attachment_list(dl_list):
     gmail_service = initialize_gmail_service()
     label_ids = ["INBOX", "Label_2"]
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
+    threads = gmail_service.users().threads().list(userId='me',labelIds=label_ids).execute()   
     if results['resultSizeEstimate']!=0:
         messages = results['messages']
     else:
@@ -734,8 +737,19 @@ def get_email_attachment_list(dl_list):
     attach_list = []
     remove = []    
     loop_break = True
+    is_thread = False
     dl_list.reverse()
+    
     while (ind < last_ind):
+        if ind != last_ind - 1:
+            if not is_thread and messages[ind]['threadId'] == messages[ind + 1]['threadId']:
+                dl_list.reverse()
+                is_thread = True
+                pass
+            if is_thread and messages[ind]['threadId'] != messages[ind + 1]['threadId']:
+                dl_list.reverse()
+                is_thread = False
+                pass
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
@@ -745,25 +759,18 @@ def get_email_attachment_list(dl_list):
             sublist.append(sender[0])
             sublist.append(sender[1])
             sublist.append(date)
-# FIX METHOD --------------------------------------------------------------------
-            while len(dl_list) > 0:
-                i = len(dl_list) - 1
-                print("dl_list: ", dl_list)
+            for i in range(len(dl_list)):
                 temp = dl_list[i]
                 index = temp.rfind(".")
                 file_short = temp[:index]
                 multiple = False
                 if file_short[len(file_short) - 3] == '(' and file_short[len(file_short) - 1] == ')':
-                    print("entered if statement")
                     multiple = True
                     sublist[0] = dl_list[i]
                 if attachment == dl_list[i] or multiple:
-                    print(dl_list[i])
                     attach_list.append(sublist)
-                    print(attach_list)
-                    print("dl_list before pop: ", dl_list)
                     dl_list.pop(i)
-                    print("dl_list after pop: ", dl_list)
+                    break
             if attachment == "":
                 del sublist
             else:
@@ -777,8 +784,8 @@ def get_email_attachment_list(dl_list):
             #break
         remove.append(ind)
         ind = ind + 1
-    #for index in remove:
-        #remove_label(remove[0])
+    for index in remove:
+        remove_label(remove[0])
 
     return attach_list
 
@@ -1111,7 +1118,3 @@ def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
     sheets_service = initialize_sheets_service()
-    
-    
-dl_list = dl_folder('0BzlU44AWMToxMXBRSVk5aG1wbG8')
-print(get_email_attachment_list(dl_list))
