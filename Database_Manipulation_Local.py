@@ -467,9 +467,9 @@ class bst():
     def write(self, root, edate, client):
         book = xlwt.Workbook(style_compression=2)
         sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
-        filename = 'Rates for ' + str(edate) + '.xls'
+        filename = 'Rates for ' + str(edate) + '.xlsx'
         final_list = []
-        length = 10 #lenght of provider list - 2 (hash key and change value)
+        length = 11 #lenght of provider list - 2 (hash key and change value)
 
         self.to_database(root, final_list)
         for x in range(len(final_list)):
@@ -498,6 +498,8 @@ class bst():
                             st = xlwt.easyxf('align: horiz right')
                             sheet.write(x,k,provider[k+1],st)
                             # print "marker 3"
+                    elif k == 9:
+                        sheet.write(x,k,str(provider[k+1]))
                     else:
                         st = xlwt.easyxf('align: horiz left')
                         sheet.write(x,k,provider[k+1],st)
@@ -513,6 +515,13 @@ class bst():
         book.save(filename)
 
         print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
+        #clear out previous working versions
+        file_id = find_file_id(filename)
+        if file_id != None:
+            delete_file(file_id)
+        upload_excel(filename)
+        move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        #file_clean(filename)
 
 """Convert class performs all file conversions"""
 class convert():

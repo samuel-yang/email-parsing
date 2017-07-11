@@ -195,6 +195,8 @@ def main():
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
     
+    rate_list = dl_folder('0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+    
     if len(dl_list) == 0:
         print "No new files to be processed."
         print "\nSource_Compiler has succesfully run to completion.\n\n\n"

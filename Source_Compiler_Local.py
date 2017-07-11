@@ -198,6 +198,8 @@ def main():
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
     
+    rate_list = dl_folder('0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+    
     if len(dl_list) == 0:
         print "No new files to be processed."
         print "\nSource_Compiler has succesfully run to completion.\n\n\n"
@@ -253,6 +255,7 @@ def main():
             #write to document here
             try:
                 bst().write(header, check_date, client)
+                rate_list.append("Rates for " + str(check_date))
             except gspread.exceptions.RequestError:
                 print('Request Error, rewriting')                
                 bst().write(header, check_date, client)
@@ -264,6 +267,7 @@ def main():
                 #else:
                 try:
                     bst().write(header, check_date, client)
+                    rate_list.append("Rates for " + str(check_date))
                 except gspread.exceptions.RequestError:
                     print('Request Error, rewriting')
                     bst().write(header, check_date, client)
@@ -332,20 +336,17 @@ def main():
         check_date = file_to_process[3]
 
     # BUILDS TO CURRENT DAY
-    try:
-        bst().write(header, check_date, client)
-    except gspread.exceptions.RequestError:
-        print('Request Error, rewriting')        
-        bst().write(header, check_date, client)
     while check_date < date.today():
-        check_date = check_date + timedelta(days=1)
+        check_date = check_date + timedelta(days = 1)
+        print("Building %s database." % str(check_date))
         bst().database_build(header, check_date, client, change_header)
-        try:
-            bst().write(header, check_date, client)
-        except gspread.exceptions.RequestError:
-            print('Request Error, rewriting')            
-            bst().write(header, check_date, client)
+        print("Writing %s database." % str(check_date))
+        bst().write(header, check_date, client)
+        rate_list.append("Rates for " + str(check_date))
+        
     
+    for i in range(len(rate_list)):
+        file_clean(rate_list[i])
     print("Source Compiler has finished running.")
 
 # def main():
