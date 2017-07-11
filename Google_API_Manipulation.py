@@ -302,10 +302,12 @@ def dl_folder(folder_id):
                 while count > 0:
                     if count == 1:
                         os.rename(file_name_no_extension + "." + extension, temp + "." + extension)
+                        rename_file(file_id, temp + "." + extension)
                     else:
                         temp = file_name_no_extension + "(" + str(count - 1) + ")"
                         temp2 = file_name_no_extension + "(" + str(count) + ")"
                         os.rename(temp + "." + extension, temp2 + "." + extension)
+                        rename_file(file_id, temp2 + "." + extension)
                     count = count - 1                    
                     
                 dl_file(file_id, file_name)
@@ -724,8 +726,7 @@ def get_email_attachment_list(dl_list):
     """
     gmail_service = initialize_gmail_service()
     label_ids = ["INBOX", "Label_2"]
-    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
-    threads = gmail_service.users().threads().list(userId='me',labelIds=label_ids).execute()   
+    results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute() 
     if results['resultSizeEstimate']!=0:
         messages = results['messages']
     else:
