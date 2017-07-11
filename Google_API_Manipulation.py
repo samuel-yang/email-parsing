@@ -1114,7 +1114,27 @@ def unfreeze_first_row(spreadsheet_id, rowCount):
     
     result = sheets_service.spreadsheets().batchUpdate(spreadsheetId=spreadsheet_id,
                                                        body=body).execute()
+    
+def upload_excel(file_name):
+    """Uploads an Excel (.xlsx) file to Drive.
+    
+    Default path is working directory. Takes Excel files (.xlsx) only.
 
+    Args:
+        file_name: full name of the file including extension.
+    """    
+    drive_service = initialize_drive_service()
+    file_metadata = { 'name' : file_name }
+    try:
+        media = MediaFileUpload(file_name,
+                                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        file = drive_service.files().create(body=file_metadata,
+                                            media_body=media,
+                                            fields='id').execute()
+        print("Uploaded " + file_name + "(ID: %s) to Drive" % file.get('id'))
+    except IOError:
+        print("File not found.")
+    
 def main():
     drive_service = initialize_drive_service()
     gmail_service = initialize_gmail_service()
