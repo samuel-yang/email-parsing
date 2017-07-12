@@ -307,7 +307,8 @@ def dl_folder(folder_id):
                         temp = file_name_no_extension + "(" + str(count - 1) + ")"
                         temp2 = file_name_no_extension + "(" + str(count) + ")"
                         os.rename(temp + "." + extension, temp2 + "." + extension)
-                        rename_file(file_id, temp2 + "." + extension)
+                        temp_file_id = find_file_id(temp + "." + extension)
+                        rename_file(temp_file_id, temp2 + "." + extension)
                     count = count - 1                    
                     
                 dl_file(file_id, file_name)
@@ -739,7 +740,6 @@ def get_email_attachment_list(dl_list):
     remove = []    
     loop_break = True
     is_thread = False
-    dl_list.reverse()
     
     while (ind < last_ind):
         if ind != last_ind - 1:

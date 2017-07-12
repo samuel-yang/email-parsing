@@ -1,5 +1,5 @@
 import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys
-# import win32com.client
+import win32com.client
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
@@ -255,7 +255,7 @@ def main():
             #write to document here
             try:
                 bst().write(header, check_date, client)
-                rate_list.append("Rates for " + str(check_date))
+                rate_list.append("Rates for " + str(check_date) + ".xls")
             except gspread.exceptions.RequestError:
                 print('Request Error, rewriting')                
                 bst().write(header, check_date, client)
@@ -267,7 +267,7 @@ def main():
                 #else:
                 try:
                     bst().write(header, check_date, client)
-                    rate_list.append("Rates for " + str(check_date))
+                    rate_list.append("Rates for " + str(check_date) + ".xls")
                 except gspread.exceptions.RequestError:
                     print('Request Error, rewriting')
                     bst().write(header, check_date, client)
@@ -342,7 +342,7 @@ def main():
         bst().database_build(header, check_date, client, change_header)
         print("Writing %s database." % str(check_date))
         bst().write(header, check_date, client)
-        rate_list.append("Rates for " + str(check_date))
+        rate_list.append("Rates for " + str(check_date) + ".xls")
         
     
     for i in range(len(rate_list)):

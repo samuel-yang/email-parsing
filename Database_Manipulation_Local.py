@@ -150,7 +150,7 @@ class bst():
         filename_old = filename
 
         while(days <= 10):
-            if os.path.isfile(filename_old + '.xlsx'):
+            if os.path.isfile(filename_old + '.xls'):
                 print ("File found with filename %s." %filename_old)
                 book_found = True
                 break
@@ -165,18 +165,20 @@ class bst():
         if not book_found:
             #if not os.path.isfile(filename_old + '.xlsx'):
             print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
-            book = openpyxl.Workbook()
+            book = xlwt.Workbook(style_compression=2)
+            sheet = book.add_sheet("Sheet", cell_overwrite_ok=True)
             filename_old = filename
-            book.save(filename_old + '.xlsx')
+            book.save(filename_old + '.xls')
+            return
 
-        filename = filename_old + '.xlsx'
-        book = openpyxl.load_workbook(filename)
-        sheet = book.active
-        rownum = sheet.max_row
-        colnum = sheet.max_column
+        filename = filename_old + '.xls'
+        book = xlrd.open_workbook(filename, formatting_info=True)
+        sheet = book.sheet_by_index(0)
+        rownum = sheet.nrows
+        colnum = 11
         for i in range(rownum-1):
             i = i + 1
-            if sheet.cell(row=i+1, column=1).value == None:
+            if sheet.cell(i, 1).value == None:
                 break
             string = ''
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
@@ -184,7 +186,7 @@ class bst():
             for j in range(colnum):
                 if j == 7:
                     if provider[7] == 'CURR':
-                        provider.append(sheet.cell(row=i+1, column=j+1).value)
+                        provider.append(sheet.cell(i, j).value)
                     elif not provider[7] == 'USD':
                         curr = 0
                         for x in range(len(currency_list)):
@@ -195,34 +197,37 @@ class bst():
                         converted = currency_rate[curr]*float(provider[6])
                         provider.append(converted)
                     else:
-                        provider.append(sheet.cell(row=i+1,column=j+1).value)
+                        provider.append(sheet.cell(i,j).value)
                 elif j == 9:
-                    provider.append(str(sheet.cell(row=i+1, column=j+1).value))
+                    provider.append(convert_date(sheet.cell(i, j).value))
                 else:
-                    provider.append(sheet.cell(row=i+1, column=j+1).value)
+                    provider.append(sheet.cell(i, j).value)
                 if j < 5:
-                    string = string + str(sheet.cell(row=i+1, column=j+1).value).encode("utf-8")
+                    string = string + str(sheet.cell(i, j).value).encode("utf-8")
                 else:
                     pass
 
             if provider[11] == '':
                 provider[11] == '-----'
 
+            string = string + str(provider[9]).decode('utf-8')
             provider[0] = hash(string)
-            provider.append(0)
-            if not provider[10] == today:
-                cell_fill = str(sheet.cell(row=i+1, column=8).fill)
-                index = cell_fill.rfind('rgb=')+4
-                color = cell_fill[index:index+10]
-                # """RED = 'FFFF0000' and GREEN = 'FF008000'"""
-                if color == 'FFFF0000':
-                    provider[11] = 'Increase'
-                elif color == 'FF008000':
-                    provider[11] = 'Decrease'
+            #provider.append(0)
+            if provider[10] >= edate:
+                xfx = sheet.cell_xf_index(i, 7)
+                xf = book.xf_list[xfx]
+                bgx = xf.background.pattern_colour_index
+                if bgx == 10:
+                    provider[11] = "Increase"
+                elif bgx == 17:
+                    provider[11] = "Decrease"
+                else:
+                    provider[11] = "-----"
+            else:
+                provider[11] = "-----"
 
+            change_root = edate
             self.insert(root, self.node(provider[0], provider), change_root)
-
-
 
 
     def insert(self, root, node, change_root):
@@ -248,17 +253,18 @@ class bst():
                 elif float(root.data[8]) > float(node.data[8]):
                     node.data[11] = 'Decrease'
                     root.data = node.data
-                    temp = self.node(root.key, root.data)
-                    self.insert_new(change_root, temp)
+                    #temp = self.node(root.key, root.data)
+                    #self.insert_new(change_root, temp)
                 # """Price increased"""
                 elif float(root.data[8]) < float(node.data[8]):
                     node.data[11] = 'Increase'
                     root.data = node.data
-                    temp = self.node(root.key, root.data)
-                    self.insert_new(change_root, temp)
+                    #temp = self.node(root.key, root.data)
+                    #self.insert_new(change_root, temp)
                 # """no change"""
                 else:
-                    node.data[11] = '------'
+                    if node.data[10] < change_root:
+                        node.data[11] = '------'
                     root.data = node.data
 
     def insert_new(self, root, node):
@@ -401,7 +407,8 @@ class bst():
             provider[0] = hash(string)
             provider[10] = convert_date(provider[10])
             provider.append('-----')
-
+            
+            change_root = provider[10]
             self.insert(root, self.node(provider[0], provider), change_root)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
@@ -467,7 +474,7 @@ class bst():
     def write(self, root, edate, client):
         book = xlwt.Workbook(style_compression=2)
         sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
-        filename = 'Rates for ' + str(edate) + '.xlsx'
+        filename = 'Rates for ' + str(edate) + '.xls'
         final_list = []
         length = 11 #lenght of provider list - 2 (hash key and change value)
 
@@ -516,11 +523,17 @@ class bst():
 
         print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
         #clear out previous working versions
-        file_id = find_file_id(filename)
+        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
         if file_id != None:
             delete_file(file_id)
         upload_excel(filename)
         move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+        if temp_file_id != None:
+            delete_file(temp_file_id)        
+        upload_as_gsheet(filename, 'Rates for ' + str(edate))
+        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+        
         #file_clean(filename)
 
 """Convert class performs all file conversions"""
@@ -726,6 +739,7 @@ class format():
                                 currency = 'USD'      
                                 # """Adjust converted value - for GW0 and GW111"""
                                 converted = float(str(value)[-4:])/10000
+                                sheet_wr.write(x - row, 5, converted)
                             elif not currency_list[i] == 'USD':
                                 currency = currency_list[i]
                                 converted = currency_rate[i]*float(value)
