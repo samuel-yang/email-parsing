@@ -30,9 +30,9 @@ def clx(filename, root, source, edate, upload_list, change_header):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    rename_file(file_id, newname)
-    file_clean(filename)
+    #move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    #rename_file(file_id, newname)
+    #file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Monty Mobile"""
@@ -198,7 +198,11 @@ def main():
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
     
-    rate_list = dl_folder('0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+    #Production version
+    rate_list = dl_folder('0BzlU44AWMToxNEtxSWROcjkzYVE')    
+    
+    #Test folder
+    #rate_list = dl_folder('0BzlU44AWMToxSTNfYTFkdm5MZEE')
     
     if len(dl_list) == 0:
         print "No new files to be processed."
@@ -253,24 +257,17 @@ def main():
         # date change enters into if statement and builds last case
         if check_date != file_to_process[3]:
             #write to document here
-            try:
-                bst().write(header, check_date, client)
-                rate_list.append("Rates for " + str(check_date) + ".xls")
-            except gspread.exceptions.RequestError:
-                print('Request Error, rewriting')                
-                bst().write(header, check_date, client)
+            bst().write(header, check_date, client)
+            rate_list.append("Rates for " + str(check_date) + ".xls")
             while check_date < file_to_process[3]:
                 check_date = check_date + timedelta(days=1)
                 bst().database_build(header, check_date, client, change_header)
-                #if check_date == file_to_process[3]:
-                    #break
-                #else:
-                try:
+                if check_date == file_to_process[3]:
+                    break
+                else:
                     bst().write(header, check_date, client)
                     rate_list.append("Rates for " + str(check_date) + ".xls")
-                except gspread.exceptions.RequestError:
-                    print('Request Error, rewriting')
-                    bst().write(header, check_date, client)
+
 
         processed = False
         print "\nFile currently being processed is: ", file_to_process[0]
@@ -336,6 +333,8 @@ def main():
         check_date = file_to_process[3]
 
     # BUILDS TO CURRENT DAY
+    bst().write(header, check_date, client)
+    rate_list.append("Rates for " + str(check_date) + ".xls")    
     while check_date < date.today():
         check_date = check_date + timedelta(days = 1)
         print("Building %s database." % str(check_date))
