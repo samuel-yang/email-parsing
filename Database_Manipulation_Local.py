@@ -219,13 +219,10 @@ class bst():
                 bgx = xf.background.pattern_colour_index
                 if bgx == 10:
                     provider[11] = "Increase"
-                    print(provider[10], edate)
                 elif bgx == 17:
                     provider[11] = "Decrease"
-                    print(provider[10], edate)
                 else:
                     provider[11] = "-----"
-                    print("Pass effective date")
             else:
                 provider[11] = "-----"
 
@@ -485,6 +482,9 @@ class bst():
         self.to_database(root, final_list)
         for x in range(len(final_list)):
             provider = final_list.pop(0)
+            if provider[10] != 'Effective Date':
+                if provider[10] < edate:
+                    provider[11] = "-----"
             # print len(final_list)
             for k in range(length):
                 if x == 0:
@@ -529,28 +529,28 @@ class bst():
         #clear out previous working versions
         
         #Production version
-        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        if file_id != None:
-            delete_file(file_id)
-        upload_excel(filename)
-        move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-        if temp_file_id != None:
-            delete_file(temp_file_id)        
-        upload_as_gsheet(filename, 'Rates for ' + str(edate))
-        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-        
-        # Development version uses test folders
-        #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
         #if file_id != None:
             #delete_file(file_id)
         #upload_excel(filename)
-        #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        #move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
         #if temp_file_id != None:
             #delete_file(temp_file_id)        
         #upload_as_gsheet(filename, 'Rates for ' + str(edate))
-        #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
+        #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+        
+        # Development version uses test folders
+        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        if file_id != None:
+            delete_file(file_id)
+        upload_excel(filename)
+        move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        if temp_file_id != None:
+            delete_file(temp_file_id)        
+        upload_as_gsheet(filename, 'Rates for ' + str(edate))
+        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
         
         #file_clean(filename)
 

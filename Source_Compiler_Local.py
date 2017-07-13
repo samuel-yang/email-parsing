@@ -194,15 +194,16 @@ def main():
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
     header = bst().node(title[0], title)
     change_header = bst().node(title[0], title)
+    premium_header = bst().node(title[0], title)
 
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
     
     #Production version
-    rate_list = dl_folder('0BzlU44AWMToxNEtxSWROcjkzYVE')    
+    #rate_list = dl_folder('0BzlU44AWMToxNEtxSWROcjkzYVE')    
     
     #Test folder
-    #rate_list = dl_folder('0BzlU44AWMToxSTNfYTFkdm5MZEE')
+    rate_list = dl_folder('0BzlU44AWMToxSTNfYTFkdm5MZEE')
     
     if len(dl_list) == 0:
         print "No new files to be processed."
@@ -217,7 +218,7 @@ def main():
         index = name.rfind('.')
         hyphen1 = index - 3
         hyphen2 = index - 6
-        if name[hyphen1] == '-' and name[hyphen2] == '-':
+        if name[hyphen1] == '-' and name[hyphen2] == '-' and name[hyphen2 - 5] != '_':
             date_removed = name[:index-11]
             ext = name[index:]
             new_name = date_removed + ext

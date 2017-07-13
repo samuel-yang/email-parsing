@@ -288,31 +288,43 @@ def dl_folder(folder_id):
                 count = 0
                 temp = file_name_no_extension
                 multiple = False
+                #while True:
+                    #if not os.path.isfile(temp + "." + extension):
+                        #break
+                    #else:
+                        #count = count + 1
+                        #if temp[len(temp) - 3] == '(' and temp[len(temp) - 1] == ')':
+                            #temp = temp[:len(temp) - 3]                        
+                        #temp = temp + "(" + str(count) + ")"
+                        #multiple = True
+                #if multiple:
+                    #company_list.append(temp + "." + extension)
+                #while count > 0:
+                    #if count == 1:
+                        #os.rename(file_name_no_extension + "." + extension, temp + "." + extension)
+                        #rename_file(file_id, temp + "." + extension)
+                    #else:
+                        #temp = file_name_no_extension + "(" + str(count - 1) + ")"
+                        #temp2 = file_name_no_extension + "(" + str(count) + ")"
+                        #os.rename(temp + "." + extension, temp2 + "." + extension)
+                        #temp_file_id = find_file_id(temp + "." + extension)
+                        #rename_file(temp_file_id, temp2 + "." + extension)
+                    #count = count - 1                    
+                    
                 while True:
                     if not os.path.isfile(temp + "." + extension):
                         break
-                    else:
-                        count = count + 1
-                        if temp[len(temp) - 3] == '(' and temp[len(temp) - 1] == ')':
-                            temp = temp[:len(temp) - 3]                        
-                        temp = temp + "(" + str(count) + ")"
-                        multiple = True
+                    count = count + 1
+                    if temp[len(temp) - 3] == '(' and temp[len(temp) - 1] == ')':
+                        temp = temp[:len(temp) - 3]                        
+                    temp = temp + "(" + str(count) + ")"
+                    multiple = True
+                
+                dl_file(file_id, temp + "." + extension)
                 if multiple:
-                    company_list.append(temp + "." + extension)
-                while count > 0:
-                    if count == 1:
-                        os.rename(file_name_no_extension + "." + extension, temp + "." + extension)
-                        rename_file(file_id, temp + "." + extension)
-                    else:
-                        temp = file_name_no_extension + "(" + str(count - 1) + ")"
-                        temp2 = file_name_no_extension + "(" + str(count) + ")"
-                        os.rename(temp + "." + extension, temp2 + "." + extension)
-                        temp_file_id = find_file_id(temp + "." + extension)
-                        rename_file(temp_file_id, temp2 + "." + extension)
-                    count = count - 1                    
-                    
-                dl_file(file_id, file_name)
-                if not multiple:
+                    rename_file(file_id, temp + "." + extension)
+                    company_list.append(temp + "." + extension)                
+                else:
                     company_list.append(file_name)
                     
         page_token = response.get('nextPageToken', None)
@@ -742,15 +754,15 @@ def get_email_attachment_list(dl_list):
     is_thread = False
     
     while (ind < last_ind):
-        if ind != last_ind - 1:
-            if not is_thread and messages[ind]['threadId'] == messages[ind + 1]['threadId']:
-                dl_list.reverse()
-                is_thread = True
-                pass
-            if is_thread and messages[ind]['threadId'] != messages[ind + 1]['threadId']:
-                dl_list.reverse()
-                is_thread = False
-                pass
+        #if ind != last_ind - 1:
+            #if not is_thread and messages[ind]['threadId'] == messages[ind + 1]['threadId']:
+                #dl_list.reverse()
+                #is_thread = True
+                #pass
+            #if is_thread and messages[ind]['threadId'] != messages[ind + 1]['threadId']:
+                #dl_list.reverse()
+                #is_thread = False
+                #pass
         file_attach = get_email_attachment(ind)
         sender = get_email_sender(ind)
         date = get_email_date(ind)
