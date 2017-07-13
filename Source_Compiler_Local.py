@@ -15,6 +15,37 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 client = authorize(get_credentials())
 
+# """Agile Telecom"""
+def agile(filename, root, source, edate, upload_list, change_header):
+    excel = win32com.client.gencache.EnsureDispatch('Excel.Application')
+    cd_path = os.getcwd()
+    wb = excel.Workbooks.Open(cd_path + '\\' + filename)
+    ws = wb.Worksheets(1)
+    for shape in ws.Shapes:
+        shape.Delete()
+    print("Deleted all images from %s" % filename)
+    ws.Rows(ws.UsedRange.Rows.Count).Delete()
+    print("Deleted last row")    
+    wb.Save()
+    print("Saved %s" % filename)
+    excel.Quit()
+    
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
+        return 'No rate in document.'
+    bst().source_build(root, filename1, change_header)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
+
 # """CLX Networks"""
 def clx(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
@@ -33,6 +64,28 @@ def clx(filename, root, source, edate, upload_list, change_header):
     move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
     rename_file(file_id, newname)
     file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
+
+# """Mitto AG"""
+def mitto(filename, root, source, edate, upload_list, change_header, wholesale_header):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
+        return 'No rate in document.'
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    wholesale_name = "hookmob1"
+    if short.rfind(wholesale_name) != -1:
+        bst().source_build(wholesale_header, filename1, change_header)
+    else:
+        bst().source_build(root, filename1, change_header)
+    #move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    #rename_file(file_id, newname)
+    #file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Monty Mobile"""
@@ -131,37 +184,6 @@ def tedexis(filename, root, source, edate, upload_list, change_header):
     file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
-# """Agile Telecom"""
-def agile(filename, root, source, edate, upload_list, change_header):
-    excel = win32com.client.gencache.EnsureDispatch('Excel.Application')
-    cd_path = os.getcwd()
-    wb = excel.Workbooks.Open(cd_path + '\\' + filename)
-    ws = wb.Worksheets(1)
-    for shape in ws.Shapes:
-        shape.Delete()
-    print("Deleted all images from %s" % filename)
-    ws.Rows(ws.UsedRange.Rows.Count).Delete()
-    print("Deleted last row")    
-    wb.Save()
-    print("Saved %s" % filename)
-    excel.Quit()
-    
-    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
-    filename1 = format().excel_format(filename, source, 0, edate)
-    if filename1 == -1:
-        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
-        return 'No rate in document.'
-    bst().source_build(root, filename1, change_header)
-    index = filename.rfind('.')
-    short = filename[:index]
-    index = len(filename) - index
-    ext = filename[-index:]
-    newname = short + ' ' + str(edate) + ext
-    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    rename_file(file_id, newname)
-    file_clean(filename)
-    return ("%s has been processed, now waiting to be uploaded." % filename)
-
 # """General Use Case"""
 # support for mmd, UPM, wavecell, centro, mitto, bics, openmarket, kddi, horisen, calltrade
 def general(filename, root, source, edate, upload_list, change_header):
@@ -184,17 +206,17 @@ def general(filename, root, source, edate, upload_list, change_header):
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
 
-    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'Mitto AG', 'C3ntro Telecom', 'HORISEN', 'KDDI Global']
+    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global']
     #For Windows Platforms
     # special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom']
     # For NON - Windows Platforms
-    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks']
+    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Mitto AG']
 
     # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
     header = bst().node(title[0], title)
     change_header = bst().node(title[0], title)
-    premium_header = bst().node(title[0], title)
+    wholesale_header = bst().node(title[0], title)
 
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
@@ -246,7 +268,7 @@ def main():
     # as long as there is something in the company list
 
     # first build of database here
-    bst().database_build(header, check_date, client, change_header) 
+    bst().database_build(header, check_date, change_header, wholesale_header) 
     upload_list = []
 
     while len(company_list) > 0:
@@ -258,15 +280,15 @@ def main():
         # date change enters into if statement and builds last case
         if check_date != file_to_process[3]:
             #write to document here
-            bst().write(header, check_date, client)
+            bst().write(header, check_date, wholesale_header)
             rate_list.append("Rates for " + str(check_date) + ".xls")
             while check_date < file_to_process[3]:
                 check_date = check_date + timedelta(days=1)
-                bst().database_build(header, check_date, client, change_header)
+                bst().database_build(header, check_date, change_header, wholesale_header) 
                 if check_date == file_to_process[3]:
                     break
                 else:
-                    bst().write(header, check_date, client)
+                    bst().write(header, check_date, wholesale_header)
                     rate_list.append("Rates for " + str(check_date) + ".xls")
 
 
@@ -315,7 +337,12 @@ def main():
                 elif file_to_process[1] == special_dictionary[j] and j == 5:
                     status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True            
+                    processed = True    
+                # """Mitto AG"""
+                elif file_to_process[1] == special_dictionary[j] and j == 6:
+                    status = mitto(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header, wholesale_header)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """Not special case"""
                 else:
                     pass
@@ -334,14 +361,14 @@ def main():
         check_date = file_to_process[3]
 
     # BUILDS TO CURRENT DAY
-    bst().write(header, check_date, client)
+    bst().write(header, check_date, wholesale_header)
     rate_list.append("Rates for " + str(check_date) + ".xls")    
     while check_date < date.today():
         check_date = check_date + timedelta(days = 1)
         print("Building %s database." % str(check_date))
-        bst().database_build(header, check_date, client, change_header)
+        bst().database_build(header, check_date, change_header, wholesale_header) 
         print("Writing %s database." % str(check_date))
-        bst().write(header, check_date, client)
+        bst().write(header, check_date, wholesale_header)
         rate_list.append("Rates for " + str(check_date) + ".xls")
         
     

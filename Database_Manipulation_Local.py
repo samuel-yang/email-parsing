@@ -140,7 +140,7 @@ class bst():
 
     #         self.insert(root, self.node(provider[0], provider), change_root)
 
-    def database_build(self, root, edate, client, change_root):
+    def database_build(self, root, edate, change_root, wholesale_root):
         filename = 'Rates for ' + str(edate)
         # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
         # file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
@@ -228,6 +228,62 @@ class bst():
 
             change_root = edate
             self.insert(root, self.node(provider[0], provider), change_root)
+            
+        w_sheet = book.sheet_by_index(1)
+        rownum = w_sheet.nrows
+        colnum = 11
+        for i in range(rownum-1):
+            i = i + 1
+            if w_sheet.cell(i, 1).value == None:
+                break
+            string = ''
+            """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+            provider = [0]
+            for j in range(colnum):
+                if j == 7:
+                    if provider[7] == 'CURR':
+                        provider.append(w_sheet.cell(i, j).value)
+                    elif not provider[7] == 'USD':
+                        curr = 0
+                        for x in range(len(currency_list)):
+                            if provider[7] in currency_list[x]:
+                                curr = x
+                                break
+
+                        converted = currency_rate[curr]*float(provider[6])
+                        provider.append(converted)
+                    else:
+                        provider.append(w_sheet.cell(i,j).value)
+                elif j == 9:
+                    provider.append(convert_date(w_sheet.cell(i, j).value))
+                else:
+                    provider.append(w_sheet.cell(i, j).value)
+                if j < 5:
+                    string = string + str(w_sheet.cell(i, j).value).encode("utf-8")
+                else:
+                    pass
+
+            if provider[11] == '':
+                provider[11] == '-----'
+
+            string = string + str(provider[9]).decode('utf-8')
+            provider[0] = hash(string)
+            #provider.append(0)
+            if provider[10] >= edate:
+                xfx = w_sheet.cell_xf_index(i, 7)
+                xf = book.xf_list[xfx]
+                bgx = xf.background.pattern_colour_index
+                if bgx == 10:
+                    provider[11] = "Increase"
+                elif bgx == 17:
+                    provider[11] = "Decrease"
+                else:
+                    provider[11] = "-----"
+            else:
+                provider[11] = "-----"
+
+            change_root = edate
+            self.insert(wholesale_root, self.node(provider[0], provider), change_root)
 
 
     def insert(self, root, node, change_root):
@@ -472,14 +528,68 @@ class bst():
     #     freeze_first_row(file_id, rowcount)
     #     print ("Sheet has been formatted, %s has been written succesfully." %filename)
 
-    def write(self, root, edate, client):
+    def write(self, root, edate, wholesale_root):
         book = xlwt.Workbook(style_compression=2)
-        sheet = book.add_sheet("sheet",cell_overwrite_ok=True)
+        sheet = book.add_sheet("Premium",cell_overwrite_ok=True)
+        w_sheet = book.add_sheet("Wholesale",cell_overwrite_ok=True)
         filename = 'Rates for ' + str(edate) + '.xls'
         final_list = []
         length = 11 #lenght of provider list - 2 (hash key and change value)
 
         self.to_database(root, final_list)
+        count = 0
+        for x in range(len(final_list)):
+            provider = final_list.pop(0)
+            if provider[10] != 'Effective Date':
+                if provider[10] < edate:
+                    provider[11] = "-----"
+            if provider[8] == 0:
+                count = count + 1
+                pass
+            # print len(final_list)
+            else:
+                for k in range(length):
+                    if x == 0:
+                        st = xlwt.easyxf('align: horiz center')
+                        sheet.write(x - count,k,provider[k+1],st)
+                    else:
+                        if k == 5:
+                            st = xlwt.easyxf('align: horiz right')
+                            sheet.write(x - count,k,provider[k+1],st)
+                        elif k == 7:
+                            # price increased
+                            if provider[11] == 'Increase':
+                                st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
+                                sheet.write(x - count,k,float(provider[k+1]),st)
+                                # print "marker 1"
+                            # price decreased
+                            elif provider[11] == 'Decrease':
+                                st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
+                                sheet.write(x - count,k,float(provider[k+1]),st)
+                                # print "marker 2"
+                            else:
+                                st = xlwt.easyxf('align: horiz right')
+                                sheet.write(x - count,k,provider[k+1],st)
+                                # print "marker 3"
+                        elif k == 9:
+                            sheet.write(x - count,k,str(provider[k+1]))
+                        else:
+                            st = xlwt.easyxf('align: horiz left')
+                            sheet.write(x - count,k,provider[k+1],st)
+                            # print "marker 4"
+                        
+        sheet.col(0).width = 6500
+        sheet.col(1).width = 8000
+        sheet.col(2).width = 2500
+        sheet.col(6).width = 2500 
+        sheet.col(8).width = 5000
+        sheet.set_panes_frozen(True)
+        sheet.set_horz_split_pos(1)
+        
+        final_list = []
+        length = 11 #lenght of provider list - 2 (hash key and change value)
+
+        self.to_database(wholesale_root, final_list)
         for x in range(len(final_list)):
             provider = final_list.pop(0)
             if provider[10] != 'Effective Date':
@@ -489,40 +599,39 @@ class bst():
             for k in range(length):
                 if x == 0:
                     st = xlwt.easyxf('align: horiz center')
-                    sheet.write(x,k,provider[k+1],st)
+                    w_sheet.write(x,k,provider[k+1],st)
                 else:
                     if k == 5:
                         st = xlwt.easyxf('align: horiz right')
-                        sheet.write(x,k,provider[k+1],st)
+                        w_sheet.write(x,k,provider[k+1],st)
                     elif k == 7:
                         # price increased
                         if provider[11] == 'Increase':
                             st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
-                            sheet.write(x,k,float(provider[k+1]),st)
+                            w_sheet.write(x,k,float(provider[k+1]),st)
                             # print "marker 1"
                         # price decreased
                         elif provider[11] == 'Decrease':
                             st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
-                            sheet.write(x,k,float(provider[k+1]),st)
+                            w_sheet.write(x,k,float(provider[k+1]),st)
                             # print "marker 2"
                         else:
                             st = xlwt.easyxf('align: horiz right')
-                            sheet.write(x,k,provider[k+1],st)
+                            w_sheet.write(x,k,provider[k+1],st)
                             # print "marker 3"
                     elif k == 9:
-                        sheet.write(x,k,str(provider[k+1]))
+                        w_sheet.write(x,k,str(provider[k+1]))
                     else:
                         st = xlwt.easyxf('align: horiz left')
-                        sheet.write(x,k,provider[k+1],st)
-                        # print "marker 4"
-
-        sheet.col(0).width = 6500
-        sheet.col(1).width = 8000
-        sheet.col(2).width = 2500
-        sheet.col(6).width = 2500 
-        sheet.col(8).width = 5000
-        sheet.set_panes_frozen(True)
-        sheet.set_horz_split_pos(1)
+                        w_sheet.write(x,k,provider[k+1],st)
+                        # print "marker 4"        
+        w_sheet.col(0).width = 6500
+        w_sheet.col(1).width = 8000
+        w_sheet.col(2).width = 2500
+        w_sheet.col(6).width = 2500 
+        w_sheet.col(8).width = 5000
+        w_sheet.set_panes_frozen(True)
+        w_sheet.set_horz_split_pos(1)
         book.save(filename)
 
         print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
