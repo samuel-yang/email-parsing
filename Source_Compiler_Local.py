@@ -222,10 +222,10 @@ def main():
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
     
     #Production version
-    #rate_list = dl_folder('0BzlU44AWMToxNEtxSWROcjkzYVE')    
+    rate_list = dl_folder('0BzlU44AWMToxNEtxSWROcjkzYVE')    
     
     #Test folder
-    rate_list = dl_folder('0BzlU44AWMToxSTNfYTFkdm5MZEE')
+    #rate_list = dl_folder('0BzlU44AWMToxSTNfYTFkdm5MZEE')
     
     if len(dl_list) == 0:
         print "No new files to be processed."

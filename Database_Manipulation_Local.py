@@ -638,28 +638,28 @@ class bst():
         #clear out previous working versions
         
         #Production version
-        #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        #if file_id != None:
-            #delete_file(file_id)
-        #upload_excel(filename)
-        #move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-        #if temp_file_id != None:
-            #delete_file(temp_file_id)        
-        #upload_as_gsheet(filename, 'Rates for ' + str(edate))
-        #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-        
-        # Development version uses test folders
-        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
         if file_id != None:
             delete_file(file_id)
         upload_excel(filename)
-        move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
         if temp_file_id != None:
             delete_file(temp_file_id)        
         upload_as_gsheet(filename, 'Rates for ' + str(edate))
-        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
+        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+        
+        # Development version uses test folders
+        #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        #if file_id != None:
+            #delete_file(file_id)
+        #upload_excel(filename)
+        #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        #if temp_file_id != None:
+            #delete_file(temp_file_id)        
+        #upload_as_gsheet(filename, 'Rates for ' + str(edate))
+        #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
 
 """Convert class performs all file conversions"""
 class convert():
