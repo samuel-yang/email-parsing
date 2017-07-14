@@ -323,7 +323,17 @@ def dl_folder(folder_id):
                 dl_file(file_id, temp + "." + extension)
                 if multiple:
                     rename_file(file_id, temp + "." + extension)
-                    company_list.append(temp + "." + extension)                
+                    company_list.append(temp + "." + extension)
+                    count = count - 1
+                    while count > 0:
+                        temp = temp[:len(temp) - 3]
+                        temp = temp + "(" + str(count) + ")"
+                        file_id = find_file_id(temp + "." + extension)                     
+                        rename_file(file_id, temp + "." + extension)
+                        count = count - 1
+                    file_id = find_file_id(temp[:len(temp) - 3] + "." + extension)
+                    rename_file(file_id, temp[:len(temp) - 3] + "." + extension)
+                        
                 else:
                     company_list.append(file_name)
                     
@@ -776,11 +786,12 @@ def get_email_attachment_list(dl_list):
                 temp = dl_list[i]
                 index = temp.rfind(".")
                 file_short = temp[:index]
-                multiple = False
                 if file_short[len(file_short) - 3] == '(' and file_short[len(file_short) - 1] == ')':
-                    multiple = True
                     sublist[0] = dl_list[i]
-                if attachment == dl_list[i] or multiple:
+                    attach_list.append(sublist)
+                    dl_list.pop(i)
+                    break                    
+                elif attachment == dl_list[i]:
                     attach_list.append(sublist)
                     dl_list.pop(i)
                     break

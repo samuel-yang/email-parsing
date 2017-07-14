@@ -660,8 +660,6 @@ class bst():
             delete_file(temp_file_id)        
         upload_as_gsheet(filename, 'Rates for ' + str(edate))
         move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
-        
-        #file_clean(filename)
 
 """Convert class performs all file conversions"""
 class convert():

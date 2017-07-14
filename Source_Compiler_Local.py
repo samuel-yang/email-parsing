@@ -83,9 +83,9 @@ def mitto(filename, root, source, edate, upload_list, change_header, wholesale_h
         bst().source_build(wholesale_header, filename1, change_header)
     else:
         bst().source_build(root, filename1, change_header)
-    #move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    #rename_file(file_id, newname)
-    #file_clean(filename)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """Monty Mobile"""
