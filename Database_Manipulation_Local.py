@@ -632,12 +632,12 @@ class bst():
         w_sheet.col(8).width = 5000
         w_sheet.set_panes_frozen(True)
         w_sheet.set_horz_split_pos(1)
-        book.save(filename)
 
         print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
         #clear out previous working versions
         
         #Production version
+        book.save(filename)
         file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
         if file_id != None:
             delete_file(file_id)
@@ -650,16 +650,17 @@ class bst():
         move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
         
         # Development version uses test folders
+        #book.save(filename)
         #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
         #if file_id != None:
             #delete_file(file_id)
         #upload_excel(filename)
         #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        #temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
         #if temp_file_id != None:
             #delete_file(temp_file_id)        
-        #upload_as_gsheet(filename, 'Rates for ' + str(edate))
-        #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
+        #upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
+        #move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
 
 """Convert class performs all file conversions"""
 class convert():
@@ -745,6 +746,28 @@ class format():
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
 
+    def calltrade(self, filename):
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0)
+        rownum = sheet.nrows
+        colnum = sheet.ncols
+        new_book = xlwt.Workbook()
+        sheet_wr = new_book.add_sheet("Sheet", cell_overwrite_ok=True)
+        for i in range(rownum):
+            for j in range(colnum):
+                value = sheet.cell(i,j).value
+                if i == 0:
+                    sheet_wr.write(i,j,value)
+                else:
+                    if j == 6:
+                        sheet_wr.write(i,j,'EUR')
+                    elif j == 7:
+                        val = float(value)*currency_rate[1]
+                        sheet_wr.write(i,j,val)
+                    else:
+                        sheet_wr.write(i,j,value)
+        new_book.save(filename)    
+        
     # """ excel_filter takes and removes empty rows from a FORMATTED document """
     def excel_filter(self, filename):
         book = xlrd.open_workbook(filename)

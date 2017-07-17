@@ -946,6 +946,7 @@ def remove_label(ind):
     results = gmail_service.users().messages().list(userId='me', labelIds=label_id).execute()
     messages = results['messages']
     mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'removeLabelIds': ["Label_2"]}).execute()
+    mail = gmail_service.users().messages().modify(userId='me', id=messages[ind]['id'],body={'addLabelIds': ["Label_3"]}).execute()    
 
 def format_cell_alignment(sheet_id):
     """Formats the alignment of a spreadsheet cell.

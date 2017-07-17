@@ -46,6 +46,25 @@ def agile(filename, root, source, edate, upload_list, change_header):
     file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
+# """Calltrade"""
+def calltrade(filename, root, source, edate, upload_list, change_header):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
+        return 'No rate in document.'
+    format().calltrade(filename1)
+    bst().source_build(root, filename1, change_header)
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
+
 # """CLX Networks"""
 def clx(filename, root, source, edate, upload_list, change_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
@@ -206,9 +225,9 @@ def general(filename, root, source, edate, upload_list, change_header):
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
 
-    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global']
+    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub']
     #For Windows Platforms
-    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG']
+    special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade']
     # For NON - Windows Platforms
     #special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG']
 
@@ -220,13 +239,7 @@ def main():
 
     # """Folder ID is for Test Files Folder"""
     dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
-    
-    #Production version
-    rate_list = dl_folder('0BzlU44AWMToxNEtxSWROcjkzYVE')    
-    
-    #Test folder
-    #rate_list = dl_folder('0BzlU44AWMToxSTNfYTFkdm5MZEE')
-    
+        
     if len(dl_list) == 0:
         print "No new files to be processed."
         print "\nSource_Compiler has succesfully run to completion.\n\n\n"
@@ -266,6 +279,30 @@ def main():
     index = len(company_list) - 1
     check_date = company_list[index][3]
     # as long as there is something in the company list
+    
+    temp = check_date - timedelta(days=1)
+    rate_list = []
+    #Production version
+    while True:
+        if temp > date.today():
+            break
+        file_name = "Rates for " + str(temp) + ".xls"
+        file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        if file_id != None:
+            dl_file(file_id, file_name)
+            rate_list.append(file_name)
+        temp = temp + timedelta(days=1)
+    
+    #Test folder
+    #while True:
+        #if temp > date.today():
+            #break
+        #file_name = "Rates for " + str(temp) + ".xls"
+        #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        #if file_id != None:
+            #dl_file(file_id, file_name)
+            #rate_list.append(file_name)
+        #temp = temp + timedelta(days=1)
 
     # first build of database here
     bst().database_build(header, check_date, change_header, wholesale_header) 
@@ -343,6 +380,11 @@ def main():
                     status = mitto(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header, wholesale_header)
                     print 'Status of: ', file_to_process[0], ' is: ', status
                     processed = True
+                # """Calltrade"""
+                elif file_to_process[1] == special_dictionary[j] and j == 7:
+                    status = calltrade(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                    print 'Status of: ', file_to_process[0], ' is: ', status
+                    processed = True
                 # """Not special case"""
                 else:
                     pass
@@ -384,4 +426,6 @@ def main():
 #     print ("all done")
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        sleep(1800)
