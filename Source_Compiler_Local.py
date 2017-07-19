@@ -234,7 +234,8 @@ def main():
     # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
     header = bst().node(title[0], title)
-    change_header = bst().node(title[0], title)
+    pricing = [0000000000000000000, 'Region', 'CC', 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Cost USD', 'Price USD', 'Profit Margin', 'Source']
+    change_header = bst().node(pricing[0], pricing)
     wholesale_header = bst().node(title[0], title)
 
     # """Folder ID is for Test Files Folder"""

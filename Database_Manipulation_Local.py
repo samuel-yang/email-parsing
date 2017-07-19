@@ -17,6 +17,7 @@ from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
 from xlutils.copy import copy
+from openpyxl import styles
 #from gspread import *
 
 reload(sys)
@@ -226,7 +227,6 @@ class bst():
             else:
                 provider[11] = "-----"
 
-            change_root = edate
             self.insert(root, self.node(provider[0], provider), change_root)
             
         w_sheet = book.sheet_by_index(1)
@@ -282,7 +282,6 @@ class bst():
             else:
                 provider[11] = "-----"
 
-            change_root = edate
             self.insert(wholesale_root, self.node(provider[0], provider), change_root)
 
 
@@ -309,27 +308,66 @@ class bst():
                 elif float(root.data[8]) > float(node.data[8]):
                     node.data[11] = 'Decrease'
                     root.data = node.data
-                    #temp = self.node(root.key, root.data)
-                    #self.insert_new(change_root, temp)
+                    data = root.data
+                    key = root.key                    
+                    if node.data[10] >= date.today():
+                        new_node = self.node(key, data)
+                        temp = new_node.data
+                        new = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        new[11] = temp[9]
+                        new[10] = 0.0
+                        new[9] = 0.0
+                        new[8] = temp[6]
+                        new[7] = temp[5]                    
+                        #if temp[4] < 10:
+                            #new[6] = '0' + str(int(temp[4]))
+                        #else:
+                            #new[6] = str(int(temp[4]))
+                        new[6] = temp[4]
+                        new[5] = temp[3]
+                        new[4] = temp[2]
+                        new[3] = temp[1]
+                        new[2] = 'CC'        
+                        new[1] = 'Region'
+                        new[0] = temp[0]
+                        new_node.data = new                    
+                        self.insert_new(change_root, new_node)                        
+
                 # """Price increased"""
                 elif float(root.data[8]) < float(node.data[8]):
                     node.data[11] = 'Increase'
                     root.data = node.data
-                    #temp = self.node(root.key, root.data)
-                    #self.insert_new(change_root, temp)
+                    data = root.data
+                    key = root.key
+                    if node.data[10] >= date.today():
+                        new_node = self.node(key, data)
+                        temp = new_node.data
+                        new = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        new[11] = temp[9]
+                        new[10] = 0.0
+                        new[9] = 0.0
+                        new[8] = temp[6]
+                        new[7] = temp[5]                    
+                        #if temp[4] < 10:
+                            #new[6] = '0' + str(int(temp[4]))
+                        #else:
+                            #new[6] = str(int(temp[4]))
+                        new[6] = temp[4]
+                        new[5] = temp[3]
+                        new[4] = temp[2]
+                        new[3] = temp[1]
+                        new[2] = 'CC'        
+                        new[1] = 'Region'
+                        new[0] = temp[0]
+                        new_node.data = new                    
+                        self.insert_new(change_root, new_node)
                 # """no change"""
                 else:
-                    #if node.data[10] < change_root:
-                        #root.data[11] = '------'
-                    #root.data = node.data
                     pass
 
     def insert_new(self, root, node):
-        temp = node.data
-        temp[6] = temp[8]
-        temp[7] = float(0)
-        temp[8] = float(0)
-        node.data = temp
+        """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+        #[hash, region, cc, country, network, mcc, mnc, mccmnc, cost, price, profit margin, source]
         if root is None:
             root = node
         else:
@@ -353,38 +391,21 @@ class bst():
                 if root.l_child is None:
                     root.l_child = node
                 else:
-                    self.insert(root.l_child, node, change_root)
+                    self.insert_price(root.l_child, node, notify_list)
             elif root.key < node.key:
                 if root.r_child is None:
                     root.r_child = node
                 else:
-                    self.insert(root.r_child, node, change_root)
+                    self.insert_price(root.r_child, node, notify_list)
             elif root.key == node.key:
-                if root.data[6] == 'Cost USD':
-                    pass
-                else:
-                    root.data[7] = node.data[7]
-                    profit = (root.data[7] - root.data[6])/root.data[6]
-                    root.data[8] = profit
-                    # """Catches if profit is too low, and adds it to list so that it can be returned"""
-                    # """Comparing rates of various nodes, typecasting to float"""
-                    # """Price decreased"""
-                    if float(root.data[6]) > float(node.data[6]):
-                        node.data[11] = 'Decrease'
-                        root.data = node.data
-                        self.insert_new(change_root, node)
-                    # """Price increased"""
-                    elif float(root.data[6]) < float(node.data[6]):
-                        node.data[11] = 'Increase'
-                        root.data = node.data
-                        self.insert_new(change_root, node)
-                    # """no change"""
-                    else:
-                        node.data[11] = '------'
-                        root.data = node.data
-                    
-                    if profit < .2:
-                        notify_list.append(node.data)
+                # provider list = [hash, region, cc, country, network, mcc, mnc, mccmnc, cost, price, profit margin, source]
+                root.data[1] = node.data[1]
+                root.data[2] = node.data[2]
+                
+                root.data[9] = node.data[9]
+                profit = (root.data[9] - root.data[8]) / root.data[8]
+                root.data[10] = profit
+                notify_list.append(root.data)
     
     def in_order_print(self, root):
         if not root:
@@ -400,46 +421,70 @@ class bst():
         self.pre_order_print(root.l_child)
         self.pre_order_print(root.r_child)
 
-    def price_build(self, root, client, filename):
-        try:
-            book = client.open(filename)
-        except gspread.exceptions.SpreadsheetNotFound:
-            print ("%s was not found.  Please check to make sure a pricing sheet exists." %filename)
-            return
-        sheet = book.get_worksheet(0)
-        values = sheet.get_all_values()
-        values.pop(0)
+    def price_build(self, root, filename):
+        provider_list = ['Mitto AG', 'Tata Communications', 'CLX Networks', 'Tedexis', 'UPM Telecom']
+        provider_dictionary = ({'Mitto AG': ['Mitto', 'Mitto Wholesale']},
+                               {'Tata Communications': ['TATA']},
+                               {'CLX Networks': ['CLX']},
+                               {'Tedexis': ['Tedexis']},
+                               {'UPM Telecom': ['UPM']})
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(4)
+        rownum = sheet.nrows
+        colnum = sheet.ncols
         notify_list = []
-        for i in range(len(values)):
-            temp = values.pop(0)
-            if temp[0] == '':
+        for i in range(rownum):
+            # provider list = [hash, region, cc, country, network, mcc, mnc, mccmnc, cost, price, profit margin, source]
+            provider = [0]
+            no_cost = False
+            string = ''
+            if i == 0:
                 pass
             else:
-                provider = [0]
-                provider = provider + temp
-                string = ''
-                if len(temp[3]) == 1:
-                    provider[4] = '0' + str(provider[4])                
-                for j in range(5):
-                    string = string + str(provider[j+1]).decode('utf-8')
+                for j in range(colnum):
+                    # Splits MCCMNC to MCC and MNC, and appends all 3 to provider
+                    if j == 4:
+                        value = sheet.cell(i,j).value.decode('utf-8')
+                        mcc = value[:3]
+                        mnc = value[3:5]
+                        provider.append(mcc)
+                        provider.append(mnc)
+                        provider.append(value)
+                        string = string + mcc + mnc + value
+                    # appends Source - catches unusual naming
+                    elif j == 8:
+                        value = sheet.cell(i,j).value.decode('utf-8')
+                        for k in range(len(provider_list)-1):
+                            if value in provider_dictionary[k][provider_list[k]]:
+                                value = provider_list[k].decode('utf-8')
+                                break
+                        provider.append(value)               
+                        string = string + value    
+                    # appends Region | CC | Country | Network | Cost | Price | Profit Margin
+                    else:
+                        value = sheet.cell(i,j).value
+                        #hash for country and network, decodes to unicode
+                        if j == 2 or j == 3:
+                            value = value.decode('utf-8')
+                            string = string + value
+                        #converts cost and price to float values
+                        elif j == 5 or j == 6:
+                            try:
+                                value = float(value)
+                            except ValueError:
+                                no_cost = True
+                        
+                        provider.append(value) 
                 
-                string = string + str(provider[9]).decode('utf-8')
+                #String to hash = Country, Network, MCC, MNC, MCCMNC, Source
                 provider[0] = hash(string)
-                # """Catch if MCC and MNC are missing
-                if provider[3] == '' and provider[4] == '' and provider[5] != '':
-                    provider[3] = provider[5][:2]
-                    provider[4] = provider[5][3:4]
+                
+                #if no_cost:
+                    #notify_list.append(provider)
+                #else:
+                self.insert_price(root, self.node(provider[0], provider), notify_list)
 
-            for i in range(len(provider)):
-                if i == 0 or i == 6 or i == 7 or i == 8 or i == 10 or i == 11:
-                    pass
-                else:
-                    temp = str(provider[i]).decode('utf-8')
-                    provider[i] = temp
-
-            self.insert_price(root, self.node(provider[0], provider), notify_list)
-
-        self.pre_order_print(root)
+        return notify_list
 
     # """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
     #     root taken in as argument"""
@@ -456,7 +501,13 @@ class bst():
             for j in range(colnum):
                 provider.append(sheet.cell(i,j).value) 
                 if j < 5:
-                    string = string + str(sheet.cell(i,j).value).decode("utf-8")
+                    value = sheet.cell(i,j).value
+                    #if j == 2 or j == 3:
+                        #if value < 10:
+                            #value = '0' + str(int(value))
+                        #else:
+                            #value = str(int(value))
+                    string = string + str(value).decode("utf-8")
                 else:
                     pass
             
@@ -465,7 +516,6 @@ class bst():
             provider[10] = convert_date(provider[10])
             provider.append('-----')
             
-            change_root = provider[10]
             self.insert(root, self.node(provider[0], provider), change_root)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
@@ -662,6 +712,58 @@ class bst():
         #upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
         #move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
 
+    def write_price(self, change_root, wholesale_root):
+        #book = xlwt.Workbook()
+        #sheet = book.add_sheet('Sheet', cell_overwrite_ok=True)
+        
+        #rb = xlrd.open_workbook('Copy of Hook Full Price List interns.xlsx')
+        #r_sheet = rb.sheet_by_index(4)
+        #book = copy(rb)
+        #sheet = book.get_sheet(4)
+        
+        book = openpyxl.load_workbook('Hook Full Price List interns.xlsx')
+        #r_sheet = rb['A-Z INTERNAL']
+        #book = copy(rb)
+        sheet = book['A-Z INTERNAL']
+        
+        final_list = []
+        self.to_database(change_root, final_list)
+        colnum = 9
+        for i in range(len(final_list)):
+            provider = final_list.pop(0)
+            provider.pop(5)
+            provider.pop(5)
+            for j in range(colnum):
+                if i == 0:
+                    #st = xlwt.easyxf('align: horiz center')
+                    row = sheet.row_dimensions[1]
+                    row.alignment = styles.Alignment(horizontal='center')
+                    
+                    #for row in rows:
+                        #cell = row[i][j]
+                        #cell.alignment = Alignment(horizontal='center')                    
+                            
+                    sheet.cell(row=i+1,column=j+1).value = provider[j+1]
+                else:
+                    sheet.cell(row=i+1,column=j+1).value = provider[j+1]
+        
+        #sheet.col(2).width = 6000
+        #sheet.col(3).width = 6000
+        #sheet.col(7).width = 4000
+        #sheet.col(8).width = 6000
+        #sheet.set_panes_frozen(True)
+        #sheet.set_horz_split_pos(1)
+        
+        #sheet.column_dimensions[2].width = 6000
+        #sheet.column_dimensions[3].width = 6000
+        #sheet.column_dimensions[7].width = 4000
+        #sheet.column_dimensions[8].width = 6000
+        sheet.freeze_panes = sheet['A2']
+        
+        book.save('Pricing Sheet.xlsx')
+        print ('Pricing sheet has been updated.')
+        #upload_excel('Pricing Sheet.xlsx')
+        
 """Convert class performs all file conversions"""
 class convert():
     """CSV_TO_EXCEL takes in a string argument of the filename, and returns
