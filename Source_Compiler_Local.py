@@ -229,7 +229,7 @@ def main():
     #For Windows Platforms
     special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade']
     # For NON - Windows Platforms
-    #special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG']
+    # special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG', 'Calltrade']
 
     # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
@@ -283,6 +283,7 @@ def main():
     
     temp = check_date - timedelta(days=1)
     rate_list = []
+    
     #Production version
     while True:
         if temp > date.today():
@@ -294,16 +295,16 @@ def main():
             rate_list.append(file_name)
         temp = temp + timedelta(days=1)
     
-    #Test folder
-    #while True:
-        #if temp > date.today():
-            #break
-        #file_name = "Rates for " + str(temp) + ".xls"
-        #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        #if file_id != None:
-            #dl_file(file_id, file_name)
-            #rate_list.append(file_name)
-        #temp = temp + timedelta(days=1)
+    # #Test folder
+    # while True:
+    #     if temp > date.today():
+    #         break
+    #     file_name = "Rates for " + str(temp) + ".xls"
+    #     file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+    #     if file_id != None:
+    #         dl_file(file_id, file_name)
+    #         rate_list.append(file_name)
+    #     temp = temp + timedelta(days=1)
 
     # first build of database here
     bst().database_build(header, check_date, change_header, wholesale_header) 

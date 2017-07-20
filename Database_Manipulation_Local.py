@@ -587,6 +587,13 @@ class bst():
         length = 11 #lenght of provider list - 2 (hash key and change value)
 
         self.to_database(root, final_list)
+        title = []
+        title.append(final_list.pop(0))
+        temp = format().quicksort(final_list, 1)
+        final_list = title + temp
+
+
+        # final_list = title + final_list
         count = 0
         for x in range(len(final_list)):
             provider = final_list.pop(0)
@@ -640,6 +647,11 @@ class bst():
         length = 11 #lenght of provider list - 2 (hash key and change value)
 
         self.to_database(wholesale_root, final_list)
+        title = []
+        title.append(final_list.pop(0))
+        temp = format().quicksort(final_list, 1)
+        final_list = title + temp
+
         for x in range(len(final_list)):
             provider = final_list.pop(0)
             if provider[10] != 'Effective Date':
@@ -699,18 +711,18 @@ class bst():
         upload_as_gsheet(filename, 'Rates for ' + str(edate))
         move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
         
-        # Development version uses test folders
-        #book.save(filename)
-        #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        #if file_id != None:
-            #delete_file(file_id)
-        #upload_excel(filename)
-        #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        #temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
-        #if temp_file_id != None:
-            #delete_file(temp_file_id)        
-        #upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
-        #move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
+        # # Development version uses test folders
+        # book.save(filename)
+        # file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        # if file_id != None:
+        #     delete_file(file_id)
+        # upload_excel(filename)
+        # move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        # temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        # if temp_file_id != None:
+        #     delete_file(temp_file_id)        
+        # upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
+        # move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
 
     def write_price(self, change_root, wholesale_root):
         #book = xlwt.Workbook()
@@ -728,7 +740,12 @@ class bst():
         
         final_list = []
         self.to_database(change_root, final_list)
+        title = []
+        title.append(final_list.pop(0))
+        temp = format().quicksort(final_list, 1)
+        final_list = title + temp
         colnum = 9
+        
         for i in range(len(final_list)):
             provider = final_list.pop(0)
             provider.pop(5)
@@ -1073,10 +1090,31 @@ class format():
         newbook.save(filename)
         return filename
 
+    """ Quicksort sorts the a list and puts it in order, to_sort is a list of lists, index is the item in each list to use to sort"""
+    def quicksort(self, to_sort, index):
+        less = []
+        equal = []
+        greater = []
+
+        if len(to_sort) > 1:
+            pivot = to_sort[0]
+            for x in to_sort:
+                if x[index ]< pivot[index]:
+                    less.append(x)
+                if x[index] == pivot[index]:
+                    equal.append(x)
+                if x[index] > pivot[index]:
+                    greater.append(x)
+
+            return self.quicksort(less, index)+equal+self.quicksort(greater, index)
+
+        else:
+            return to_sort
+
     """ Parses through strings with multiple components and returns list with separated strings"""
     def separator(self, cell_val):
         c=0
-        start=False
+        start=False 
         start_ind=0
         end_ind=0
         for i in range(len(cell_val)):
