@@ -17,6 +17,7 @@ from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
 from xlutils.copy import copy
+from openpyxl import styles
 #from gspread import *
 
 reload(sys)
@@ -64,87 +65,224 @@ class bst():
 
     # """Database build differs from source build in that it extracts cell formatting for certian conditions,
     # to test and see if cells are properly highlighted, works directly with google sheets"""
-    def database_build(self, root, edate, client, change_root):
-        filename = 'Rates for ' + str(edate)
-        # file_id = find_file_id(filename)
-        # if file_id != None:
-        #     delete_file(file_id)
+    # def database_build(self, root, edate, client, change_root):
+    #     filename = 'Rates for ' + str(edate)
+    #     # file_id = find_file_id(filename)
+    #     # if file_id != None:
+    #     #     delete_file(file_id)
 
+    #     day_before = edate
+    #     days = 0
+    #     filename_old = filename
+    #     found = False
+    #     while days <10 and not found:
+    #         if os.path.isfile(filename_old):
+    #             book = xlrd.open(filename_old)
+    #             sheet = book.sheet_by_index(0)
+    #             print ('Rates sheet for %s found.' %str(day_before))
+    #             found = True
+    #         else:
+    #             print ('NO sheet for %s found, continuing search.' %str(day_before))
+    #             day_before = day_before - timedelta(days=1)
+    #             filename_old = 'Rates for ' + str(day_before)
+    #             days = days + 1
+
+    #     if not found or day_before != edate:
+    #         newbook = xlwt.open(filename)
+    #         newsheet = newbook.sheet_by_index(0)
+    #         print ("New sheet created. Sheet created is for %s" %str(edate))
+    #         if not found:
+    #             return
+
+    #     rownum = sheet.nrows
+    #     colnum = sheet.ncols
+    #     # full = sheet.get_all_values()
+    #     # freeze_first_row(file_id, len(full))
+    #     # if full == []:
+    #         # return
+    #     # full.pop(0)
+    #     for i in range(rownum):
+    #         if temp[0] == '':
+    #             pass
+    #         else:
+    #             provider = [0]
+    #             provider = provider + temp
+    #             string = ''
+    #             if len(temp[3]) == 1:
+    #                 provider[4] = '0' + str(provider[4])                
+    #             for j in range(5):
+    #                 string = string + str(provider[j+1]).decode('utf-8')
+                
+    #             string = string + str(provider[9]).decode('utf-8')
+    #             provider[0] = hash(string)
+    #             if provider[7] != 'USD':
+    #                 for j in range(len(currency_list)):
+    #                     if provider[7] in currency_list[j]:
+    #                         curr = j
+    #                         break
+    #                 converted = currency_rate[curr]*float(provider[6])
+    #                 provider[8] = converted
+    #         try:
+    #             if provider[11] == '':
+    #                 provider[11] = '-----'
+    #         except IndexError:
+    #             provider.append('-----')
+
+    #         provider[10] = convert_date(provider[10])
+    #         if provider[10] < edate:
+    #             provider[11] = '-----'
+            
+    #         for i in range(len(provider)):
+    #             if i == 0 or i == 8 or i == 10 or i == 11:
+    #                 pass
+    #             else:
+    #                 temp = str(provider[i]).decode('utf-8')
+    #                 provider[i] = temp
+
+    #         self.insert(root, self.node(provider[0], provider), change_root)
+
+    def database_build(self, root, edate, change_root, wholesale_root):
+        filename = 'Rates for ' + str(edate)
+        # """Attempts to locate file using the filename in the 'Compiled Data Folder' """"
+        # file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
         day_before = edate
         days = 0
+        book_found = False
         filename_old = filename
-        found = False
-        while days <10 and not found:
-            try:
-                book = client.open(filename_old)
-                sheet = book.get_worksheet(0)
-                found = True
-                file_id = find_file_id(filename_old)
-                unfreeze_first_row(file_id, sheet.row_count)
-                print ("Rate sheet for %s found." %str(day_before))
-            except gspread.exceptions.SpreadsheetNotFound:
-                print ('No sheet for %s found.' %str(day_before))
-                day_before = day_before - timedelta(days=1)
+
+        while(days <= 10):
+            if os.path.isfile(filename_old + '.xls'):
+                print ("File found with filename %s." %filename_old)
+                book_found = True
+                break
+            else:
+                print ("No file found for %s." %filename_old)
+                day_before = day_before - timedelta(days = 1)
+                filename_old = 'Rates for ' + str(day_before)
                 filename_old = 'Rates for ' + str(day_before)
                 days = days + 1
 
-        if not found or day_before != edate:
-            newbook = client.create(filename) 
-            newsheet = newbook.get_worksheet(0)
-            file_id = find_file_id(filename)
-            format_cell_alignment(file_id)
-            print ("New sheet created. Sheet created is for %s" %str(edate))
-            if not found:
-                return
-
-        rownum = sheet.row_count
-        colnum = sheet.col_count
-        full = sheet.get_all_values()
-        freeze_first_row(file_id, len(full))
-        if full == []:
+        # If a previous file has not been found, it will generate a worksheet.
+        if not book_found:
+            #if not os.path.isfile(filename_old + '.xlsx'):
+            print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
+            book = xlwt.Workbook(style_compression=2)
+            sheet = book.add_sheet("Sheet", cell_overwrite_ok=True)
+            filename_old = filename
+            book.save(filename_old + '.xls')
             return
-        full.pop(0)
-        for i in range(len(full)):
-            temp = full.pop(0)
-            if temp[0] == '':
-                pass
-            else:
-                provider = [0]
-                provider = provider + temp
-                string = ''
-                if len(temp[3]) == 1:
-                    provider[4] = '0' + str(provider[4])                
-                for j in range(5):
-                    string = string + str(provider[j+1]).decode('utf-8')
-                
-                string = string + str(provider[9]).decode('utf-8')
-                provider[0] = hash(string)
-                if provider[7] != 'USD':
-                    for j in range(len(currency_list)):
-                        if provider[7] in currency_list[j]:
-                            curr = j
-                            break
-                    converted = currency_rate[curr]*float(provider[6])
-                    provider[8] = converted
-            try:
-                if provider[11] == '':
-                    provider[11] = '-----'
-            except IndexError:
-                provider.append('-----')
 
-            provider[10] = convert_date(provider[10])
-            if provider[10] < edate:
-                provider[11] = '-----'
-            
-            for i in range(len(provider)):
-                if i == 0 or i == 8 or i == 10 or i == 11:
-                    pass
+        filename = filename_old + '.xls'
+        book = xlrd.open_workbook(filename, formatting_info=True)
+        sheet = book.sheet_by_index(0)
+        rownum = sheet.nrows
+        colnum = 11
+        for i in range(rownum-1):
+            i = i + 1
+            if sheet.cell(i, 1).value == None:
+                break
+            string = ''
+            """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+            provider = [0]
+            for j in range(colnum):
+                if j == 7:
+                    if provider[7] == 'CURR':
+                        provider.append(sheet.cell(i, j).value)
+                    elif not provider[7] == 'USD':
+                        curr = 0
+                        for x in range(len(currency_list)):
+                            if provider[7] in currency_list[x]:
+                                curr = x
+                                break
+
+                        converted = currency_rate[curr]*float(provider[6])
+                        provider.append(converted)
+                    else:
+                        provider.append(sheet.cell(i,j).value)
+                elif j == 9:
+                    provider.append(convert_date(sheet.cell(i, j).value))
                 else:
-                    temp = str(provider[i]).decode('utf-8')
-                    provider[i] = temp
+                    provider.append(sheet.cell(i, j).value)
+                if j < 5:
+                    string = string + str(sheet.cell(i, j).value).encode("utf-8")
+                else:
+                    pass
+
+            if provider[11] == '':
+                provider[11] == '-----'
+
+            string = string + str(provider[9]).decode('utf-8')
+            provider[0] = hash(string)
+            #provider.append(0)
+            if provider[10] >= edate:
+                xfx = sheet.cell_xf_index(i, 7)
+                xf = book.xf_list[xfx]
+                bgx = xf.background.pattern_colour_index
+                if bgx == 10:
+                    provider[11] = "Increase"
+                elif bgx == 17:
+                    provider[11] = "Decrease"
+                else:
+                    provider[11] = "-----"
+            else:
+                provider[11] = "-----"
 
             self.insert(root, self.node(provider[0], provider), change_root)
+            
+        w_sheet = book.sheet_by_index(1)
+        rownum = w_sheet.nrows
+        colnum = 11
+        for i in range(rownum-1):
+            i = i + 1
+            if w_sheet.cell(i, 1).value == None:
+                break
+            string = ''
+            """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+            provider = [0]
+            for j in range(colnum):
+                if j == 7:
+                    if provider[7] == 'CURR':
+                        provider.append(w_sheet.cell(i, j).value)
+                    elif not provider[7] == 'USD':
+                        curr = 0
+                        for x in range(len(currency_list)):
+                            if provider[7] in currency_list[x]:
+                                curr = x
+                                break
 
+                        converted = currency_rate[curr]*float(provider[6])
+                        provider.append(converted)
+                    else:
+                        provider.append(w_sheet.cell(i,j).value)
+                elif j == 9:
+                    provider.append(convert_date(w_sheet.cell(i, j).value))
+                else:
+                    provider.append(w_sheet.cell(i, j).value)
+                if j < 5:
+                    string = string + str(w_sheet.cell(i, j).value).encode("utf-8")
+                else:
+                    pass
+
+            if provider[11] == '':
+                provider[11] == '-----'
+
+            string = string + str(provider[9]).decode('utf-8')
+            provider[0] = hash(string)
+            #provider.append(0)
+            if provider[10] >= edate:
+                xfx = w_sheet.cell_xf_index(i, 7)
+                xf = book.xf_list[xfx]
+                bgx = xf.background.pattern_colour_index
+                if bgx == 10:
+                    provider[11] = "Increase"
+                elif bgx == 17:
+                    provider[11] = "Decrease"
+                else:
+                    provider[11] = "-----"
+            else:
+                provider[11] = "-----"
+
+            self.insert(wholesale_root, self.node(provider[0], provider), change_root)
 
 
     def insert(self, root, node, change_root):
@@ -170,25 +308,66 @@ class bst():
                 elif float(root.data[8]) > float(node.data[8]):
                     node.data[11] = 'Decrease'
                     root.data = node.data
-                    temp = self.node(root.key, root.data)
-                    self.insert_new(change_root, temp)
+                    data = root.data
+                    key = root.key                    
+                    if node.data[10] >= date.today():
+                        new_node = self.node(key, data)
+                        temp = new_node.data
+                        new = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        new[11] = temp[9]
+                        new[10] = 0.0
+                        new[9] = 0.0
+                        new[8] = temp[6]
+                        new[7] = temp[5]                    
+                        #if temp[4] < 10:
+                            #new[6] = '0' + str(int(temp[4]))
+                        #else:
+                            #new[6] = str(int(temp[4]))
+                        new[6] = temp[4]
+                        new[5] = temp[3]
+                        new[4] = temp[2]
+                        new[3] = temp[1]
+                        new[2] = 'CC'        
+                        new[1] = 'Region'
+                        new[0] = temp[0]
+                        new_node.data = new                    
+                        self.insert_new(change_root, new_node)                        
+
                 # """Price increased"""
                 elif float(root.data[8]) < float(node.data[8]):
                     node.data[11] = 'Increase'
                     root.data = node.data
-                    temp = self.node(root.key, root.data)
-                    self.insert_new(change_root, temp)
+                    data = root.data
+                    key = root.key
+                    if node.data[10] >= date.today():
+                        new_node = self.node(key, data)
+                        temp = new_node.data
+                        new = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        new[11] = temp[9]
+                        new[10] = 0.0
+                        new[9] = 0.0
+                        new[8] = temp[6]
+                        new[7] = temp[5]                    
+                        #if temp[4] < 10:
+                            #new[6] = '0' + str(int(temp[4]))
+                        #else:
+                            #new[6] = str(int(temp[4]))
+                        new[6] = temp[4]
+                        new[5] = temp[3]
+                        new[4] = temp[2]
+                        new[3] = temp[1]
+                        new[2] = 'CC'        
+                        new[1] = 'Region'
+                        new[0] = temp[0]
+                        new_node.data = new                    
+                        self.insert_new(change_root, new_node)
                 # """no change"""
                 else:
-                    node.data[11] = '------'
-                    root.data = node.data
+                    pass
 
     def insert_new(self, root, node):
-        temp = node.data
-        temp[6] = temp[8]
-        temp[7] = float(0)
-        temp[8] = float(0)
-        node.data = temp
+        """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+        #[hash, region, cc, country, network, mcc, mnc, mccmnc, cost, price, profit margin, source]
         if root is None:
             root = node
         else:
@@ -212,38 +391,21 @@ class bst():
                 if root.l_child is None:
                     root.l_child = node
                 else:
-                    self.insert(root.l_child, node, change_root)
+                    self.insert_price(root.l_child, node, notify_list)
             elif root.key < node.key:
                 if root.r_child is None:
                     root.r_child = node
                 else:
-                    self.insert(root.r_child, node, change_root)
+                    self.insert_price(root.r_child, node, notify_list)
             elif root.key == node.key:
-                if root.data[6] == 'Cost USD':
-                    pass
-                else:
-                    root.data[7] = node.data[7]
-                    profit = (root.data[7] - root.data[6])/root.data[6]
-                    root.data[8] = profit
-                    # """Catches if profit is too low, and adds it to list so that it can be returned"""
-                    # """Comparing rates of various nodes, typecasting to float"""
-                    # """Price decreased"""
-                    if float(root.data[6]) > float(node.data[6]):
-                        node.data[11] = 'Decrease'
-                        root.data = node.data
-                        self.insert_new(change_root, node)
-                    # """Price increased"""
-                    elif float(root.data[6]) < float(node.data[6]):
-                        node.data[11] = 'Increase'
-                        root.data = node.data
-                        self.insert_new(change_root, node)
-                    # """no change"""
-                    else:
-                        node.data[11] = '------'
-                        root.data = node.data
-                    
-                    if profit < .2:
-                        notify_list.append(node.data)
+                # provider list = [hash, region, cc, country, network, mcc, mnc, mccmnc, cost, price, profit margin, source]
+                root.data[1] = node.data[1]
+                root.data[2] = node.data[2]
+                
+                root.data[9] = node.data[9]
+                profit = (root.data[9] - root.data[8]) / root.data[8]
+                root.data[10] = profit
+                notify_list.append(root.data)
     
     def in_order_print(self, root):
         if not root:
@@ -259,46 +421,70 @@ class bst():
         self.pre_order_print(root.l_child)
         self.pre_order_print(root.r_child)
 
-    def price_build(self, root, client, filename):
-        try:
-            book = client.open(filename)
-        except gspread.exceptions.SpreadsheetNotFound:
-            print ("%s was not found.  Please check to make sure a pricing sheet exists." %filename)
-            return
-        sheet = book.get_worksheet(0)
-        values = sheet.get_all_values()
-        values.pop(0)
+    def price_build(self, root, filename):
+        provider_list = ['Mitto AG', 'Tata Communications', 'CLX Networks', 'Tedexis', 'UPM Telecom']
+        provider_dictionary = ({'Mitto AG': ['Mitto', 'Mitto Wholesale']},
+                               {'Tata Communications': ['TATA']},
+                               {'CLX Networks': ['CLX']},
+                               {'Tedexis': ['Tedexis']},
+                               {'UPM Telecom': ['UPM']})
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(4)
+        rownum = sheet.nrows
+        colnum = sheet.ncols
         notify_list = []
-        for i in range(len(values)):
-            temp = values.pop(0)
-            if temp[0] == '':
+        for i in range(rownum):
+            # provider list = [hash, region, cc, country, network, mcc, mnc, mccmnc, cost, price, profit margin, source]
+            provider = [0]
+            no_cost = False
+            string = ''
+            if i == 0:
                 pass
             else:
-                provider = [0]
-                provider = provider + temp
-                string = ''
-                if len(temp[3]) == 1:
-                    provider[4] = '0' + str(provider[4])                
-                for j in range(5):
-                    string = string + str(provider[j+1]).decode('utf-8')
+                for j in range(colnum):
+                    # Splits MCCMNC to MCC and MNC, and appends all 3 to provider
+                    if j == 4:
+                        value = sheet.cell(i,j).value.decode('utf-8')
+                        mcc = value[:3]
+                        mnc = value[3:5]
+                        provider.append(mcc)
+                        provider.append(mnc)
+                        provider.append(value)
+                        string = string + mcc + mnc + value
+                    # appends Source - catches unusual naming
+                    elif j == 8:
+                        value = sheet.cell(i,j).value.decode('utf-8')
+                        for k in range(len(provider_list)-1):
+                            if value in provider_dictionary[k][provider_list[k]]:
+                                value = provider_list[k].decode('utf-8')
+                                break
+                        provider.append(value)               
+                        string = string + value    
+                    # appends Region | CC | Country | Network | Cost | Price | Profit Margin
+                    else:
+                        value = sheet.cell(i,j).value
+                        #hash for country and network, decodes to unicode
+                        if j == 2 or j == 3:
+                            value = value.decode('utf-8')
+                            string = string + value
+                        #converts cost and price to float values
+                        elif j == 5 or j == 6:
+                            try:
+                                value = float(value)
+                            except ValueError:
+                                no_cost = True
+                        
+                        provider.append(value) 
                 
-                string = string + str(provider[9]).decode('utf-8')
+                #String to hash = Country, Network, MCC, MNC, MCCMNC, Source
                 provider[0] = hash(string)
-                # """Catch if MCC and MNC are missing
-                if provider[3] == '' and provider[4] == '' and provider[5] != '':
-                    provider[3] = provider[5][:2]
-                    provider[4] = provider[5][3:4]
+                
+                #if no_cost:
+                    #notify_list.append(provider)
+                #else:
+                self.insert_price(root, self.node(provider[0], provider), notify_list)
 
-            for i in range(len(provider)):
-                if i == 0 or i == 6 or i == 7 or i == 8 or i == 10 or i == 11:
-                    pass
-                else:
-                    temp = str(provider[i]).decode('utf-8')
-                    provider[i] = temp
-
-            self.insert_price(root, self.node(provider[0], provider), notify_list)
-
-        self.pre_order_print(root)
+        return notify_list
 
     # """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
     #     root taken in as argument"""
@@ -315,7 +501,13 @@ class bst():
             for j in range(colnum):
                 provider.append(sheet.cell(i,j).value) 
                 if j < 5:
-                    string = string + str(sheet.cell(i,j).value).decode("utf-8")
+                    value = sheet.cell(i,j).value
+                    #if j == 2 or j == 3:
+                        #if value < 10:
+                            #value = '0' + str(int(value))
+                        #else:
+                            #value = str(int(value))
+                    string = string + str(value).decode("utf-8")
                 else:
                     pass
             
@@ -323,7 +515,7 @@ class bst():
             provider[0] = hash(string)
             provider[10] = convert_date(provider[10])
             provider.append('-----')
-
+            
             self.insert(root, self.node(provider[0], provider), change_root)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
@@ -334,58 +526,261 @@ class bst():
         self.to_database(root.l_child, templist)
         self.to_database(root.r_child, templist)
 
-    def write(self, root, edate, client):
-        filename = 'Rates for ' + str(edate)
-        book = client.open(filename)
-        sheet = book.get_worksheet(0)
-        print ("%s found, now writing to sheet." %filename)
-        sheet.clear()
-        final_list = []
-        self.to_database(root, final_list)
-        rowcount = len(final_list)
-        sheet.resize(rows=rowcount, cols=11)
-        cell_list = sheet.range(1,1,1,10)
-        full_update = []
-        for i in range(rowcount):
-            i = i + 1
-            cell_list = sheet.range(i,1,i,11)
-            provider = final_list.pop(0)
-            index = 1
-            for cell in cell_list:
-                cell.value = provider[index]
-                index = index + 1
-            full_update = full_update + cell_list
+    # def write(self, root, edate, client):
+    #     filename = 'Rates for ' + str(edate)
+    #     book = client.open(filename)
+    #     sheet = book.get_worksheet(0)
+    #     print ("%s found, now writing to sheet." %filename)
+    #     sheet.clear()
+    #     final_list = []
+    #     self.to_database(root, final_list)
+    #     rowcount = len(final_list)
+    #     sheet.resize(rows=rowcount, cols=11)
+    #     cell_list = sheet.range(1,1,1,10)
+    #     full_update = []
+    #     for i in range(rowcount):
+    #         i = i + 1
+    #         cell_list = sheet.range(i,1,i,11)
+    #         provider = final_list.pop(0)
+    #         index = 1
+    #         for cell in cell_list:
+    #             cell.value = provider[index]
+    #             index = index + 1
+    #         full_update = full_update + cell_list
 
-            #try:
-                #sheet.update_cells(cell_list)
-            #except gspread.exceptions.RequestError:
-                #print('Error entered')
-                #provider.pop(0)
-                #sheet.insert_row(provider, i)
-                #sheet.delete_row(i+1)
-        print ("List of cell values populated, now preparing to upload.")
+    #         #try:
+    #             #sheet.update_cells(cell_list)
+    #         #except gspread.exceptions.RequestError:
+    #             #print('Error entered')
+    #             #provider.pop(0)
+    #             #sheet.insert_row(provider, i)
+    #             #sheet.delete_row(i+1)
+    #     print ("List of cell values populated, now preparing to upload.")
         
-        sheet.update_cells(full_update)
-        #cell_list = sheet.range(1,1,1,11)
-        #provider = final_list.pop(0)
-        #index = 1
-        #for cell in cell_list:
-        #    cell.value = provider[index]
-        #    index = index + 1
-        #sheet.update_cells(cell_list)           
+    #     sheet.update_cells(full_update)
+    #     #cell_list = sheet.range(1,1,1,11)
+    #     #provider = final_list.pop(0)
+    #     #index = 1
+    #     #for cell in cell_list:
+    #     #    cell.value = provider[index]
+    #     #    index = index + 1
+    #     #sheet.update_cells(cell_list)           
         
-        #for i in range(len(final_list)):
-        #    rows = i + 2
-        #    provider = final_list.pop(0)
-        #    provider.pop(0)
-        #    sheet.insert_row(provider, rows)
+    #     #for i in range(len(final_list)):
+    #     #    rows = i + 2
+    #     #    provider = final_list.pop(0)
+    #     #    provider.pop(0)
+    #     #    sheet.insert_row(provider, rows)
             
 
-        file_id = find_file_id(filename)
-        conditional_format(file_id)
-        freeze_first_row(file_id, rowcount)
-        print ("Sheet has been formatted, %s has been written succesfully." %filename)
+    #     file_id = find_file_id(filename)
+    #     conditional_format(file_id)
+    #     freeze_first_row(file_id, rowcount)
+    #     print ("Sheet has been formatted, %s has been written succesfully." %filename)
 
+    def write(self, root, edate, wholesale_root):
+        book = xlwt.Workbook(style_compression=2)
+        sheet = book.add_sheet("Premium",cell_overwrite_ok=True)
+        w_sheet = book.add_sheet("Wholesale",cell_overwrite_ok=True)
+        filename = 'Rates for ' + str(edate) + '.xls'
+        final_list = []
+        length = 11 #lenght of provider list - 2 (hash key and change value)
+
+        self.to_database(root, final_list)
+        title = []
+        title.append(final_list.pop(0))
+        temp = format().quicksort(final_list, 1)
+        final_list = title + temp
+
+
+        # final_list = title + final_list
+        count = 0
+        for x in range(len(final_list)):
+            provider = final_list.pop(0)
+            if provider[10] != 'Effective Date':
+                if provider[10] < edate:
+                    provider[11] = "-----"
+            if provider[8] == 0:
+                count = count + 1
+                pass
+            # print len(final_list)
+            else:
+                for k in range(length):
+                    if x == 0:
+                        st = xlwt.easyxf('align: horiz center')
+                        sheet.write(x - count,k,provider[k+1],st)
+                    else:
+                        if k == 5:
+                            st = xlwt.easyxf('align: horiz right')
+                            sheet.write(x - count,k,provider[k+1],st)
+                        elif k == 7:
+                            # price increased
+                            if provider[11] == 'Increase':
+                                st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
+                                sheet.write(x - count,k,float(provider[k+1]),st)
+                                # print "marker 1"
+                            # price decreased
+                            elif provider[11] == 'Decrease':
+                                st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
+                                sheet.write(x - count,k,float(provider[k+1]),st)
+                                # print "marker 2"
+                            else:
+                                st = xlwt.easyxf('align: horiz right')
+                                sheet.write(x - count,k,provider[k+1],st)
+                                # print "marker 3"
+                        elif k == 9:
+                            sheet.write(x - count,k,str(provider[k+1]))
+                        else:
+                            st = xlwt.easyxf('align: horiz left')
+                            sheet.write(x - count,k,provider[k+1],st)
+                            # print "marker 4"
+                        
+        sheet.col(0).width = 6500
+        sheet.col(1).width = 8000
+        sheet.col(2).width = 2500
+        sheet.col(6).width = 2500 
+        sheet.col(8).width = 5000
+        sheet.set_panes_frozen(True)
+        sheet.set_horz_split_pos(1)
+        
+        final_list = []
+        length = 11 #lenght of provider list - 2 (hash key and change value)
+
+        self.to_database(wholesale_root, final_list)
+        title = []
+        title.append(final_list.pop(0))
+        temp = format().quicksort(final_list, 1)
+        final_list = title + temp
+
+        for x in range(len(final_list)):
+            provider = final_list.pop(0)
+            if provider[10] != 'Effective Date':
+                if provider[10] < edate:
+                    provider[11] = "-----"
+            # print len(final_list)
+            for k in range(length):
+                if x == 0:
+                    st = xlwt.easyxf('align: horiz center')
+                    w_sheet.write(x,k,provider[k+1],st)
+                else:
+                    if k == 5:
+                        st = xlwt.easyxf('align: horiz right')
+                        w_sheet.write(x,k,provider[k+1],st)
+                    elif k == 7:
+                        # price increased
+                        if provider[11] == 'Increase':
+                            st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
+                            w_sheet.write(x,k,float(provider[k+1]),st)
+                            # print "marker 1"
+                        # price decreased
+                        elif provider[11] == 'Decrease':
+                            st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
+                            w_sheet.write(x,k,float(provider[k+1]),st)
+                            # print "marker 2"
+                        else:
+                            st = xlwt.easyxf('align: horiz right')
+                            w_sheet.write(x,k,provider[k+1],st)
+                            # print "marker 3"
+                    elif k == 9:
+                        w_sheet.write(x,k,str(provider[k+1]))
+                    else:
+                        st = xlwt.easyxf('align: horiz left')
+                        w_sheet.write(x,k,provider[k+1],st)
+                        # print "marker 4"        
+        w_sheet.col(0).width = 6500
+        w_sheet.col(1).width = 8000
+        w_sheet.col(2).width = 2500
+        w_sheet.col(6).width = 2500 
+        w_sheet.col(8).width = 5000
+        w_sheet.set_panes_frozen(True)
+        w_sheet.set_horz_split_pos(1)
+
+        print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
+        #clear out previous working versions
+        
+        #Production version
+        book.save(filename)
+        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        if file_id != None:
+            delete_file(file_id)
+        upload_excel(filename)
+        move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+        if temp_file_id != None:
+            delete_file(temp_file_id)        
+        upload_as_gsheet(filename, 'Rates for ' + str(edate))
+        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+        
+        # # Development version uses test folders
+        # book.save(filename)
+        # file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        # if file_id != None:
+        #     delete_file(file_id)
+        # upload_excel(filename)
+        # move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+        # temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+        # if temp_file_id != None:
+        #     delete_file(temp_file_id)        
+        # upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
+        # move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
+
+    def write_price(self, change_root, wholesale_root):
+        #book = xlwt.Workbook()
+        #sheet = book.add_sheet('Sheet', cell_overwrite_ok=True)
+        
+        #rb = xlrd.open_workbook('Copy of Hook Full Price List interns.xlsx')
+        #r_sheet = rb.sheet_by_index(4)
+        #book = copy(rb)
+        #sheet = book.get_sheet(4)
+        
+        book = openpyxl.load_workbook('Hook Full Price List interns.xlsx')
+        #r_sheet = rb['A-Z INTERNAL']
+        #book = copy(rb)
+        sheet = book['A-Z INTERNAL']
+        
+        final_list = []
+        self.to_database(change_root, final_list)
+        title = []
+        title.append(final_list.pop(0))
+        temp = format().quicksort(final_list, 1)
+        final_list = title + temp
+        colnum = 9
+        
+        for i in range(len(final_list)):
+            provider = final_list.pop(0)
+            provider.pop(5)
+            provider.pop(5)
+            for j in range(colnum):
+                if i == 0:
+                    #st = xlwt.easyxf('align: horiz center')
+                    row = sheet.row_dimensions[1]
+                    row.alignment = styles.Alignment(horizontal='center')
+                    
+                    #for row in rows:
+                        #cell = row[i][j]
+                        #cell.alignment = Alignment(horizontal='center')                    
+                            
+                    sheet.cell(row=i+1,column=j+1).value = provider[j+1]
+                else:
+                    sheet.cell(row=i+1,column=j+1).value = provider[j+1]
+        
+        #sheet.col(2).width = 6000
+        #sheet.col(3).width = 6000
+        #sheet.col(7).width = 4000
+        #sheet.col(8).width = 6000
+        #sheet.set_panes_frozen(True)
+        #sheet.set_horz_split_pos(1)
+        
+        #sheet.column_dimensions[2].width = 6000
+        #sheet.column_dimensions[3].width = 6000
+        #sheet.column_dimensions[7].width = 4000
+        #sheet.column_dimensions[8].width = 6000
+        sheet.freeze_panes = sheet['A2']
+        
+        book.save('Pricing Sheet.xlsx')
+        print ('Pricing sheet has been updated.')
+        #upload_excel('Pricing Sheet.xlsx')
+        
 """Convert class performs all file conversions"""
 class convert():
     """CSV_TO_EXCEL takes in a string argument of the filename, and returns
@@ -470,6 +865,28 @@ class format():
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
 
+    def calltrade(self, filename):
+        book = xlrd.open_workbook(filename)
+        sheet = book.sheet_by_index(0)
+        rownum = sheet.nrows
+        colnum = sheet.ncols
+        new_book = xlwt.Workbook()
+        sheet_wr = new_book.add_sheet("Sheet", cell_overwrite_ok=True)
+        for i in range(rownum):
+            for j in range(colnum):
+                value = sheet.cell(i,j).value
+                if i == 0:
+                    sheet_wr.write(i,j,value)
+                else:
+                    if j == 6:
+                        sheet_wr.write(i,j,'EUR')
+                    elif j == 7:
+                        val = float(value)*currency_rate[1]
+                        sheet_wr.write(i,j,val)
+                    else:
+                        sheet_wr.write(i,j,value)
+        new_book.save(filename)    
+        
     # """ excel_filter takes and removes empty rows from a FORMATTED document """
     def excel_filter(self, filename):
         book = xlrd.open_workbook(filename)
@@ -498,7 +915,7 @@ class format():
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(sheetindex)
         new_book = xlwt.Workbook()
-        sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True)
+        sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True) 
 
         """Forcing the header of the excel format"""
         sheet_wr.write(0,0, 'Country')
@@ -579,6 +996,10 @@ class format():
                     for x in range(row+1, rownum):
                         if sheet.cell(x,y).value == '-':
                             value = 0
+                        elif sheet.cell(x, y).value[0] == '$':
+                            temp = sheet.cell(x, y).value
+                            value = temp[2:]
+                            value = float(value)
                         else:
                             value = sheet.cell(x,y).value
                         if sheet.cell(x,y).value == '':
@@ -589,6 +1010,7 @@ class format():
                                 currency = 'USD'      
                                 # """Adjust converted value - for GW0 and GW111"""
                                 converted = float(str(value)[-4:])/10000
+                                sheet_wr.write(x - row, 5, converted)
                             elif not currency_list[i] == 'USD':
                                 currency = currency_list[i]
                                 converted = currency_rate[i]*float(value)
@@ -672,10 +1094,31 @@ class format():
         newbook.save(filename)
         return filename
 
+    """ Quicksort sorts the a list and puts it in order, to_sort is a list of lists, index is the item in each list to use to sort"""
+    def quicksort(self, to_sort, index):
+        less = []
+        equal = []
+        greater = []
+
+        if len(to_sort) > 1:
+            pivot = to_sort[0]
+            for x in to_sort:
+                if x[index ]< pivot[index]:
+                    less.append(x)
+                if x[index] == pivot[index]:
+                    equal.append(x)
+                if x[index] > pivot[index]:
+                    greater.append(x)
+
+            return self.quicksort(less, index)+equal+self.quicksort(greater, index)
+
+        else:
+            return to_sort
+
     """ Parses through strings with multiple components and returns list with separated strings"""
     def separator(self, cell_val):
         c=0
-        start=False
+        start=False 
         start_ind=0
         end_ind=0
         for i in range(len(cell_val)):
