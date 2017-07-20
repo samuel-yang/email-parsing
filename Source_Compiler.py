@@ -5,7 +5,7 @@ from decimal import *
 from Google_API_Manipulation import *
 from time import sleep
 from datetime import *
-from Database_Manipulation_Local import *
+from Database_Manipulation import *
 from gspread import *
 
 #imports only if right operating system
