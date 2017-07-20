@@ -63,83 +63,6 @@ class bst():
             count = count + self.size(root.r_child)
             return count
 
-    # """Database build differs from source build in that it extracts cell formatting for certian conditions,
-    # to test and see if cells are properly highlighted, works directly with google sheets"""
-    # def database_build(self, root, edate, client, change_root):
-    #     filename = 'Rates for ' + str(edate)
-    #     # file_id = find_file_id(filename)
-    #     # if file_id != None:
-    #     #     delete_file(file_id)
-
-    #     day_before = edate
-    #     days = 0
-    #     filename_old = filename
-    #     found = False
-    #     while days <10 and not found:
-    #         if os.path.isfile(filename_old):
-    #             book = xlrd.open(filename_old)
-    #             sheet = book.sheet_by_index(0)
-    #             print ('Rates sheet for %s found.' %str(day_before))
-    #             found = True
-    #         else:
-    #             print ('NO sheet for %s found, continuing search.' %str(day_before))
-    #             day_before = day_before - timedelta(days=1)
-    #             filename_old = 'Rates for ' + str(day_before)
-    #             days = days + 1
-
-    #     if not found or day_before != edate:
-    #         newbook = xlwt.open(filename)
-    #         newsheet = newbook.sheet_by_index(0)
-    #         print ("New sheet created. Sheet created is for %s" %str(edate))
-    #         if not found:
-    #             return
-
-    #     rownum = sheet.nrows
-    #     colnum = sheet.ncols
-    #     # full = sheet.get_all_values()
-    #     # freeze_first_row(file_id, len(full))
-    #     # if full == []:
-    #         # return
-    #     # full.pop(0)
-    #     for i in range(rownum):
-    #         if temp[0] == '':
-    #             pass
-    #         else:
-    #             provider = [0]
-    #             provider = provider + temp
-    #             string = ''
-    #             if len(temp[3]) == 1:
-    #                 provider[4] = '0' + str(provider[4])                
-    #             for j in range(5):
-    #                 string = string + str(provider[j+1]).decode('utf-8')
-                
-    #             string = string + str(provider[9]).decode('utf-8')
-    #             provider[0] = hash(string)
-    #             if provider[7] != 'USD':
-    #                 for j in range(len(currency_list)):
-    #                     if provider[7] in currency_list[j]:
-    #                         curr = j
-    #                         break
-    #                 converted = currency_rate[curr]*float(provider[6])
-    #                 provider[8] = converted
-    #         try:
-    #             if provider[11] == '':
-    #                 provider[11] = '-----'
-    #         except IndexError:
-    #             provider.append('-----')
-
-    #         provider[10] = convert_date(provider[10])
-    #         if provider[10] < edate:
-    #             provider[11] = '-----'
-            
-    #         for i in range(len(provider)):
-    #             if i == 0 or i == 8 or i == 10 or i == 11:
-    #                 pass
-    #             else:
-    #                 temp = str(provider[i]).decode('utf-8')
-    #                 provider[i] = temp
-
-    #         self.insert(root, self.node(provider[0], provider), change_root)
 
     def database_build(self, root, edate, change_root, wholesale_root):
         filename = 'Rates for ' + str(edate)
@@ -185,7 +108,13 @@ class bst():
             """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
             provider = [0]
             for j in range(colnum):
-                if j == 7:
+                #Catches weird country namings
+                if j == 0:
+                    value = sheet.cell(i,j).value
+                    value = value.lower()
+                    value = value.title()
+                    provider.append(value)
+                elif j == 7:
                     if provider[7] == 'CURR':
                         provider.append(sheet.cell(i, j).value)
                     elif not provider[7] == 'USD':
@@ -526,58 +455,6 @@ class bst():
         self.to_database(root.l_child, templist)
         self.to_database(root.r_child, templist)
 
-    # def write(self, root, edate, client):
-    #     filename = 'Rates for ' + str(edate)
-    #     book = client.open(filename)
-    #     sheet = book.get_worksheet(0)
-    #     print ("%s found, now writing to sheet." %filename)
-    #     sheet.clear()
-    #     final_list = []
-    #     self.to_database(root, final_list)
-    #     rowcount = len(final_list)
-    #     sheet.resize(rows=rowcount, cols=11)
-    #     cell_list = sheet.range(1,1,1,10)
-    #     full_update = []
-    #     for i in range(rowcount):
-    #         i = i + 1
-    #         cell_list = sheet.range(i,1,i,11)
-    #         provider = final_list.pop(0)
-    #         index = 1
-    #         for cell in cell_list:
-    #             cell.value = provider[index]
-    #             index = index + 1
-    #         full_update = full_update + cell_list
-
-    #         #try:
-    #             #sheet.update_cells(cell_list)
-    #         #except gspread.exceptions.RequestError:
-    #             #print('Error entered')
-    #             #provider.pop(0)
-    #             #sheet.insert_row(provider, i)
-    #             #sheet.delete_row(i+1)
-    #     print ("List of cell values populated, now preparing to upload.")
-        
-    #     sheet.update_cells(full_update)
-    #     #cell_list = sheet.range(1,1,1,11)
-    #     #provider = final_list.pop(0)
-    #     #index = 1
-    #     #for cell in cell_list:
-    #     #    cell.value = provider[index]
-    #     #    index = index + 1
-    #     #sheet.update_cells(cell_list)           
-        
-    #     #for i in range(len(final_list)):
-    #     #    rows = i + 2
-    #     #    provider = final_list.pop(0)
-    #     #    provider.pop(0)
-    #     #    sheet.insert_row(provider, rows)
-            
-
-    #     file_id = find_file_id(filename)
-    #     conditional_format(file_id)
-    #     freeze_first_row(file_id, rowcount)
-    #     print ("Sheet has been formatted, %s has been written succesfully." %filename)
-
     def write(self, root, edate, wholesale_root):
         book = xlwt.Workbook(style_compression=2)
         sheet = book.add_sheet("Premium",cell_overwrite_ok=True)
@@ -764,17 +641,6 @@ class bst():
                 else:
                     sheet.cell(row=i+1,column=j+1).value = provider[j+1]
         
-        #sheet.col(2).width = 6000
-        #sheet.col(3).width = 6000
-        #sheet.col(7).width = 4000
-        #sheet.col(8).width = 6000
-        #sheet.set_panes_frozen(True)
-        #sheet.set_horz_split_pos(1)
-        
-        #sheet.column_dimensions[2].width = 6000
-        #sheet.column_dimensions[3].width = 6000
-        #sheet.column_dimensions[7].width = 4000
-        #sheet.column_dimensions[8].width = 6000
         sheet.freeze_panes = sheet['A2']
         
         book.save('Pricing Sheet.xlsx')
@@ -952,7 +818,12 @@ class format():
                 if sheet.cell(row,y).value in column_dictionary[0][column_list[0]]:
                     for x in range(row+1, rownum):
                         value = sheet.cell(x,y).value
-                        sheet_wr.write(x-row,0,value)
+                        if value == '':
+                            pass
+                        else:
+                            value = value.lower()
+                            value = value.title()
+                            sheet_wr.write(x-row,0,value)
                 # """Network"""        
                 elif sheet.cell(row,y).value in column_dictionary[1][column_list[1]]:
                     for x in range(row+1, rownum):
