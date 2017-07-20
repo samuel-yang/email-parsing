@@ -996,6 +996,10 @@ class format():
                     for x in range(row+1, rownum):
                         if sheet.cell(x,y).value == '-':
                             value = 0
+                        elif sheet.cell(x, y).value[0] == '$':
+                            temp = sheet.cell(x, y).value
+                            value = temp[2:]
+                            value = float(value)
                         else:
                             value = sheet.cell(x,y).value
                         if sheet.cell(x,y).value == '':
