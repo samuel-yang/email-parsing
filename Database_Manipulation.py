@@ -10,7 +10,7 @@
     forex_python.converter - exchange rate converter
     Google_Drive_Manipulation - using the Google Dirve and Sheets API"""
 
-import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, openpyxl, gspread
+import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, openpyxl, gspread, logging
 # from cstringIO import stringIO
 from CurrencyConverter import *
 from decimal import *
@@ -75,10 +75,12 @@ class bst():
 
         while(days <= 10):
             if os.path.isfile(filename_old + '.xls'):
+                logging.info(": File found with filename %s." %filename_old)
                 print ("File found with filename %s." %filename_old)
                 book_found = True
                 break
             else:
+                logging.info(": No file found for %s." %filename_old)
                 print ("No file found for %s." %filename_old)
                 day_before = day_before - timedelta(days = 1)
                 filename_old = 'Rates for ' + str(day_before)
@@ -88,6 +90,7 @@ class bst():
         # If a previous file has not been found, it will generate a worksheet.
         if not book_found:
             #if not os.path.isfile(filename_old + '.xlsx'):
+            logging.info(": New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
             print ("New Rates sheet created.  Either no previous versions or most recent version is more than 10 days old.")
             book = xlwt.Workbook(style_compression=2)
             sheet = book.add_sheet("Sheet", cell_overwrite_ok=True)
@@ -340,12 +343,14 @@ class bst():
         if not root:
             return
         self.in_order_print(root.l_child)
+        logging.info(": In order print: ", root.data)
         print root.data
         self.in_order_print(root.r_child)
 
     def pre_order_print(self, root):
         if not root:
             return
+        logging.info(": Pre order print: ", root.data)        
         print root.data
         self.pre_order_print(root.l_child)
         self.pre_order_print(root.r_child)
@@ -450,6 +455,7 @@ class bst():
             
         except:
             error = sys.exc_info()[0]
+            logging.error(": Error: %s" % error)
             print("Error: %s" % error)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
@@ -578,6 +584,7 @@ class bst():
             w_sheet.set_panes_frozen(True)
             w_sheet.set_horz_split_pos(1)
     
+            logging.info(': Successfully written. Data for %s is now queued to upload.' %str(edate))
             print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
             #clear out previous working versions
             
@@ -609,6 +616,7 @@ class bst():
         
         except:
             error = sys.exc_info()[0]
+            logging.error(": Error: %s" % error)              
             print("Error: %s" % error)            
 
     def write_price(self, change_root, wholesale_root):
@@ -654,6 +662,7 @@ class bst():
         sheet.freeze_panes = sheet['A2']
         
         book.save('Pricing Sheet.xlsx')
+        logging.info(': Pricing sheet has been updated.')
         print ('Pricing sheet has been updated.')
         #upload_excel('Pricing Sheet.xlsx')
         
@@ -948,11 +957,13 @@ class format():
             filename1 = filename[:index]
             filename1 = filename1 + ' FORMATTED.xls'
             new_book.save(filename1)
+            logging.info(": %s has been properly formatted." % filename)
             print "File has been properly formatted."
             # os.remove(filename)
             return filename1
         except:
             error = sys.exc_info()[0]
+            logging.error(": Error: %s" % error)
             print("Error: %s" % error)   
             #move_to_day_folder(filename, edate, '0BzlU44AWMToxOGtyYWZzSVAyNkE')
 
@@ -1054,6 +1065,7 @@ def file_clean(filename):
     if os.path.isfile(short + ' FORMATTED and FILTERED.xls'):
         os.remove(short + ' FORMATTED and FILTERED.xls')
 
+    logging.info(": All file versions of " + str(short) + "have been deleted.")
     print "All file versions of ", short, "have been deleted."
 ##print(seperator(str1))
 ##print(seperator(str2))
