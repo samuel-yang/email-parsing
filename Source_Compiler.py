@@ -228,203 +228,214 @@ def general(filename, root, source, edate, upload_list, change_header):
 
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
-
-    general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub']
-    #For Windows Platforms
-    if platform == 'win32' or platform == 'win64':
-        special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade']
-    else:
-        # For NON - Windows Platforms
-        special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG', 'Calltrade']
-
-    # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
-    title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
-    header = bst().node(title[0], title)
-    pricing = [0000000000000000000, 'Region', 'CC', 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Cost USD', 'Price USD', 'Profit Margin', 'Source']
-    change_header = bst().node(pricing[0], pricing)
-    wholesale_header = bst().node(title[0], title)
-
-    # """Folder ID is for Test Files Folder"""
-    dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
-        
-    if len(dl_list) == 0:
-        print "No new files to be processed."
-        print "\nSource_Compiler has succesfully run to completion.\n\n\n"
-        return
-    else:
-        print "\nDownload list is: ", dl_list
-
-    # """Catches already processed files and modifies name so that emails can be found from the filenames"""
-    for i in range(len(dl_list)):
-        name = dl_list[i]
-        index = name.rfind('.')
-        hyphen1 = index - 3
-        hyphen2 = index - 6
-        if name[hyphen1] == '-' and name[hyphen2] == '-' and name[hyphen2 - 5] != '_':
-            date_removed = name[:index-11]
-            ext = name[index:]
-            new_name = date_removed + ext
-            dl_list[i] = new_name
-            os.rename(name, new_name)
-            file_id = find_file_id(name)
-            rename_file(file_id, new_name)
-
-    company_list = get_email_attachment_list(dl_list)
-
-    if company_list == []:
-        print ("No 'New' messages in the Inbox, Source_Compiler has run to completion.")
+    try:
+        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub']
+        #For Windows Platforms
+        if platform == 'win32' or platform == 'win64':
+            special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade']
+        else:
+            # For NON - Windows Platforms
+            special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG', 'Calltrade']
+    
+        # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
+        title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
+        header = bst().node(title[0], title)
+        pricing = [0000000000000000000, 'Region', 'CC', 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Cost USD', 'Price USD', 'Profit Margin', 'Source']
+        change_header = bst().node(pricing[0], pricing)
+        wholesale_header = bst().node(title[0], title)
+    
+        # """Folder ID is for Test Files Folder"""
+        dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
+            
+        if len(dl_list) == 0:
+            print "No new files to be processed."
+            print "\nSource_Compiler has succesfully run to completion.\n\n\n"
+            return
+        else:
+            print "\nDownload list is: ", dl_list
+    
+        # """Catches already processed files and modifies name so that emails can be found from the filenames"""
         for i in range(len(dl_list)):
-            filename = dl_list.pop()
-            file_clean(filename)
-        return
-    else:
-        print "Email attachment list is: ", company_list 
-
-    if len(company_list) != len(dl_list):
-        print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
-
-    index = len(company_list) - 1
-    check_date = company_list[index][3]
-    # as long as there is something in the company list
+            name = dl_list[i]
+            index = name.rfind('.')
+            hyphen1 = index - 3
+            hyphen2 = index - 6
+            if name[hyphen1] == '-' and name[hyphen2] == '-' and name[hyphen2 - 5] != '_':
+                date_removed = name[:index-11]
+                ext = name[index:]
+                new_name = date_removed + ext
+                dl_list[i] = new_name
+                os.rename(name, new_name)
+                file_id = find_file_id(name)
+                rename_file(file_id, new_name)
     
-    temp = check_date - timedelta(days=1)
-    rate_list = []
+        company_list = get_email_attachment_list(dl_list)
     
-    #Production version
-    while True:
-        if temp > date.today():
-            break
-        file_name = "Rates for " + str(temp) + ".xls"
-        file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        if file_id != None:
-            dl_file(file_id, file_name)
-            rate_list.append(file_name)
-        temp = temp + timedelta(days=1)
+        if company_list == []:
+            print ("No 'New' messages in the Inbox, Source_Compiler has run to completion.")
+            for i in range(len(dl_list)):
+                filename = dl_list.pop()
+                file_clean(filename)
+            return
+        else:
+            print "Email attachment list is: ", company_list 
     
-    # #Test folder
-    # while True:
-    #     if temp > date.today():
-    #         break
-    #     file_name = "Rates for " + str(temp) + ".xls"
-    #     file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-    #     if file_id != None:
-    #         dl_file(file_id, file_name)
-    #         rate_list.append(file_name)
-    #     temp = temp + timedelta(days=1)
-
-    # first build of database here
-    bst().database_build(header, check_date, change_header, wholesale_header) 
-    upload_list = []
-
-    while len(company_list) > 0:
+        if len(company_list) != len(dl_list):
+            print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
+    
+        index = len(company_list) - 1
+        check_date = company_list[index][3]
+        # as long as there is something in the company list
         
-        try:
-            file_to_process = company_list.pop()
-        except IndexError:
-            print ("No more files to be processed")
-        # date change enters into if statement and builds last case
-        if check_date != file_to_process[3]:
-            #write to document here
+        temp = check_date - timedelta(days=1)
+        rate_list = []
+        
+        #Production version
+        while True:
+            if temp > date.today():
+                break
+            file_name = "Rates for " + str(temp) + ".xls"
+            file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+            if file_id != None:
+                dl_file(file_id, file_name)
+                rate_list.append(file_name)
+            temp = temp + timedelta(days=1)
+        
+        #Test folder
+        #while True:
+            #if temp > date.today():
+                #break
+            #file_name = "Rates for " + str(temp) + ".xls"
+            #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #if file_id != None:
+                #dl_file(file_id, file_name)
+                #rate_list.append(file_name)
+            #temp = temp + timedelta(days=1)
+    
+        # first build of database here
+        bst().database_build(header, check_date, change_header, wholesale_header) 
+        upload_list = []
+    
+        while len(company_list) > 0:
+            
+            try:
+                file_to_process = company_list.pop()
+            except IndexError:
+                print ("No more files to be processed")
+            # date change enters into if statement and builds last case
+            if check_date != file_to_process[3]:
+                #write to document here
+                bst().write(header, check_date, wholesale_header)
+                rate_list.append("Rates for " + str(check_date) + ".xls")
+                while check_date < file_to_process[3]:
+                    check_date = check_date + timedelta(days=1)
+                    bst().database_build(header, check_date, change_header, wholesale_header) 
+                    if check_date == file_to_process[3]:
+                        break
+                    else:
+                        bst().write(header, check_date, wholesale_header)
+                        rate_list.append("Rates for " + str(check_date) + ".xls")
+    
+    
+            processed = False
+            print "\nFile currently being processed is: ", file_to_process[0]
+            print "Remaining number of files to be processed is: ", len(company_list)
+    
+            for j in range(len(general_dictionary)):
+                # """General use case scenario"""
+                if file_to_process[1] == general_dictionary[j]:
+                    index = file_to_process[0].rfind('.')
+                    index = len(file_to_process[0]) - index
+                    ext = file_to_process[0][-index:]
+                    if ext == '.xls' or ext == '.xlsx':
+                        status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print "Status of: ", file_to_process[0], ' is: ', status
+                        processed = True
+                # """Special use case scenario"""
+                elif j in range(len(special_dictionary)):
+                    # """Tedexis"""
+                    if file_to_process[1] == special_dictionary[j] and j == 0:
+                        status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print "Status of: ", file_to_process[0], ' is: ', status
+                        processed = True                
+                    # """Monty Mobile"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 1:
+                        status = monty(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """Tata Communications"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 2:
+                        status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """Silverstreet"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 3:
+                        status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """CLX Networks"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 4:
+                        status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """Agile Telecom"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 5:
+                        status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True    
+                    # """Mitto AG"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 6:
+                        status = mitto(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header, wholesale_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """Calltrade"""
+                    elif file_to_process[1] == special_dictionary[j] and j == 7:
+                        status = calltrade(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """Not special case"""
+                    else:
+                        pass
+    
+            # """Case not yet tested:::
+            if not processed:
+                file_source = file_to_process[1]
+                if file_to_process[1] == None:
+                    file_source = 'None'
+                print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
+                       '. Contact the developer to build support for this document.')
+                file_id = find_file_id_using_parent(file_to_process[0], '0BzlU44AWMToxZnh5ekJaVUJUc2c')
+                move_to_day_folder(file_id, file_to_process[3], '0BzlU44AWMToxOGtyYWZzSVAyNkE') # Moves to date folder in "NotProcessed"
+                os.remove(file_to_process[0])
+    
+            check_date = file_to_process[3]
+    
+        # BUILDS TO CURRENT DAY
+        bst().write(header, check_date, wholesale_header)
+        rate_list.append("Rates for " + str(check_date) + ".xls")    
+        while check_date < date.today():
+            check_date = check_date + timedelta(days = 1)
+            print("Building %s database." % str(check_date))
+            bst().database_build(header, check_date, change_header, wholesale_header) 
+            print("Writing %s database." % str(check_date))
             bst().write(header, check_date, wholesale_header)
             rate_list.append("Rates for " + str(check_date) + ".xls")
-            while check_date < file_to_process[3]:
-                check_date = check_date + timedelta(days=1)
-                bst().database_build(header, check_date, change_header, wholesale_header) 
-                if check_date == file_to_process[3]:
-                    break
-                else:
-                    bst().write(header, check_date, wholesale_header)
-                    rate_list.append("Rates for " + str(check_date) + ".xls")
-
-
-        processed = False
-        print "\nFile currently being processed is: ", file_to_process[0]
-        print "Remaining number of files to be processed is: ", len(company_list)
-
-        for j in range(len(general_dictionary)):
-            # """General use case scenario"""
-            if file_to_process[1] == general_dictionary[j]:
-                index = file_to_process[0].rfind('.')
-                index = len(file_to_process[0]) - index
-                ext = file_to_process[0][-index:]
-                if ext == '.xls' or ext == '.xlsx':
-                    status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print "Status of: ", file_to_process[0], ' is: ', status
-                    processed = True
-            # """Special use case scenario"""
-            elif j in range(len(special_dictionary)):
-                # """Tedexis"""
-                if file_to_process[1] == special_dictionary[j] and j == 0:
-                    status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print "Status of: ", file_to_process[0], ' is: ', status
-                    processed = True                
-                # """Monty Mobile"""
-                elif file_to_process[1] == special_dictionary[j] and j == 1:
-                    status = monty(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
-                # """Tata Communications"""
-                elif file_to_process[1] == special_dictionary[j] and j == 2:
-                    status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
-                # """Silverstreet"""
-                elif file_to_process[1] == special_dictionary[j] and j == 3:
-                    status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
-                # """CLX Networks"""
-                elif file_to_process[1] == special_dictionary[j] and j == 4:
-                    status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
-                # """Agile Telecom"""
-                elif file_to_process[1] == special_dictionary[j] and j == 5:
-                    status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True    
-                # """Mitto AG"""
-                elif file_to_process[1] == special_dictionary[j] and j == 6:
-                    status = mitto(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header, wholesale_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
-                # """Calltrade"""
-                elif file_to_process[1] == special_dictionary[j] and j == 7:
-                    status = calltrade(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                    print 'Status of: ', file_to_process[0], ' is: ', status
-                    processed = True
-                # """Not special case"""
-                else:
-                    pass
-
-        # """Case not yet tested:::
-        if not processed:
-            file_source = file_to_process[1]
-            if file_to_process[1] == None:
-                file_source = 'None'
-            print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
-                   '. Contact the developer to build support for this document.')
-            file_id = find_file_id_using_parent(file_to_process[0], '0BzlU44AWMToxZnh5ekJaVUJUc2c')
-            move_to_day_folder(file_id, file_to_process[3], '0BzlU44AWMToxOGtyYWZzSVAyNkE') # Moves to date folder in "NotProcessed"
-            os.remove(file_to_process[0])
-
-        check_date = file_to_process[3]
-
-    # BUILDS TO CURRENT DAY
-    bst().write(header, check_date, wholesale_header)
-    rate_list.append("Rates for " + str(check_date) + ".xls")    
-    while check_date < date.today():
-        check_date = check_date + timedelta(days = 1)
-        print("Building %s database." % str(check_date))
-        bst().database_build(header, check_date, change_header, wholesale_header) 
-        print("Writing %s database." % str(check_date))
-        bst().write(header, check_date, wholesale_header)
-        rate_list.append("Rates for " + str(check_date) + ".xls")
+            
         
+        for i in range(len(rate_list)):
+            file_clean(rate_list[i])
+        print("Source Compiler has finished running.")
     
-    for i in range(len(rate_list)):
-        file_clean(rate_list[i])
-    print("Source Compiler has finished running.")
+    except:
+        error = sys.exc_info()[0]
+        print("Error: %s" % error)
+        #temp_id = find_file_id_using_parent(file_to_process[0], '0BzlU44AWMToxZnh5ekJaVUJUc2c')
+        #move_to_day_folder(temp_id, file_to_process[3], '0BzlU44AWMToxOGtyYWZzSVAyNkE')
+        #for file in dl_list:
+            #file_clean(file)
+        #for file in rate_list:
+            #file_clean(file)
+        #print("Resuming")
 
 # def main():
 #     title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']

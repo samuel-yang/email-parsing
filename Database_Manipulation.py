@@ -418,34 +418,39 @@ class bst():
     # """Builds BST structure for all sources in filename that is taken in.  Structure built off of 
     #     root taken in as argument"""
     def source_build(self, root, filename, change_root):
-        book = xlrd.open_workbook(filename, 'rb')
-        sheet = book.sheet_by_index(0)
-        rownum = sheet.nrows #should be 10
-        colnum = sheet.ncols
-        for i in range(rownum-1):
-            i = i + 1
-            string = ''
-            """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
-            provider = [0]
-            for j in range(colnum):
-                provider.append(sheet.cell(i,j).value) 
-                if j < 5:
-                    value = sheet.cell(i,j).value
-                    #if j == 2 or j == 3:
-                        #if value < 10:
-                            #value = '0' + str(int(value))
-                        #else:
-                            #value = str(int(value))
-                    string = string + str(value).decode("utf-8")
-                else:
-                    pass
+        try:
+            book = xlrd.open_workbook(filename, 'rb')
+            sheet = book.sheet_by_index(0)
+            rownum = sheet.nrows #should be 10
+            colnum = sheet.ncols
+            for i in range(rownum-1):
+                i = i + 1
+                string = ''
+                """provider = [hash key, country, network, mcc, mnc, mccmnc, rates, curr, converted rate, source, date, change]"""
+                provider = [0]
+                for j in range(colnum):
+                    provider.append(sheet.cell(i,j).value) 
+                    if j < 5:
+                        value = sheet.cell(i,j).value
+                        #if j == 2 or j == 3:
+                            #if value < 10:
+                                #value = '0' + str(int(value))
+                            #else:
+                                #value = str(int(value))
+                        string = string + str(value).decode("utf-8")
+                    else:
+                        pass
+                
+                string = string + str(provider[9]).decode('utf-8')
+                provider[0] = hash(string)
+                provider[10] = convert_date(provider[10])
+                provider.append('-----')
+                
+                self.insert(root, self.node(provider[0], provider), change_root)
             
-            string = string + str(provider[9]).decode('utf-8')
-            provider[0] = hash(string)
-            provider[10] = convert_date(provider[10])
-            provider.append('-----')
-            
-            self.insert(root, self.node(provider[0], provider), change_root)
+        except:
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)
 
     """Takes in node, and list.  Builds a pre-order list of node.data and stores in list taken in"""
     def to_database(self, root, templist):
@@ -456,150 +461,155 @@ class bst():
         self.to_database(root.r_child, templist)
 
     def write(self, root, edate, wholesale_root):
-        book = xlwt.Workbook(style_compression=2)
-        sheet = book.add_sheet("Premium",cell_overwrite_ok=True)
-        w_sheet = book.add_sheet("Wholesale",cell_overwrite_ok=True)
-        filename = 'Rates for ' + str(edate) + '.xls'
-        final_list = []
-        length = 11 #lenght of provider list - 2 (hash key and change value)
-
-        self.to_database(root, final_list)
-        title = []
-        title.append(final_list.pop(0))
-        temp = format().quicksort(final_list, 1)
-        final_list = title + temp
-
-
-        # final_list = title + final_list
-        count = 0
-        for x in range(len(final_list)):
-            provider = final_list.pop(0)
-            if provider[10] != 'Effective Date':
-                if provider[10] < edate:
-                    provider[11] = "-----"
-            if provider[8] == 0:
-                count = count + 1
-                pass
-            # print len(final_list)
-            else:
+        try:
+            book = xlwt.Workbook(style_compression=2)
+            sheet = book.add_sheet("Premium",cell_overwrite_ok=True)
+            w_sheet = book.add_sheet("Wholesale",cell_overwrite_ok=True)
+            filename = 'Rates for ' + str(edate) + '.xls'
+            final_list = []
+            length = 11 #lenght of provider list - 2 (hash key and change value)
+    
+            self.to_database(root, final_list)
+            title = []
+            title.append(final_list.pop(0))
+            temp = format().quicksort(final_list, 1)
+            final_list = title + temp
+    
+    
+            # final_list = title + final_list
+            count = 0
+            for x in range(len(final_list)):
+                provider = final_list.pop(0)
+                if provider[10] != 'Effective Date':
+                    if provider[10] < edate:
+                        provider[11] = "-----"
+                if provider[8] == 0:
+                    count = count + 1
+                    pass
+                # print len(final_list)
+                else:
+                    for k in range(length):
+                        if x == 0:
+                            st = xlwt.easyxf('align: horiz center')
+                            sheet.write(x - count,k,provider[k+1],st)
+                        else:
+                            if k == 5:
+                                st = xlwt.easyxf('align: horiz right')
+                                sheet.write(x - count,k,provider[k+1],st)
+                            elif k == 7:
+                                # price increased
+                                if provider[11] == 'Increase':
+                                    st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
+                                    sheet.write(x - count,k,float(provider[k+1]),st)
+                                    # print "marker 1"
+                                # price decreased
+                                elif provider[11] == 'Decrease':
+                                    st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
+                                    sheet.write(x - count,k,float(provider[k+1]),st)
+                                    # print "marker 2"
+                                else:
+                                    st = xlwt.easyxf('align: horiz right')
+                                    sheet.write(x - count,k,provider[k+1],st)
+                                    # print "marker 3"
+                            elif k == 9:
+                                sheet.write(x - count,k,str(provider[k+1]))
+                            else:
+                                st = xlwt.easyxf('align: horiz left')
+                                sheet.write(x - count,k,provider[k+1],st)
+                                # print "marker 4"
+                            
+            sheet.col(0).width = 6500
+            sheet.col(1).width = 8000
+            sheet.col(2).width = 2500
+            sheet.col(6).width = 2500 
+            sheet.col(8).width = 5000
+            sheet.set_panes_frozen(True)
+            sheet.set_horz_split_pos(1)
+            
+            final_list = []
+            length = 11 #lenght of provider list - 2 (hash key and change value)
+    
+            self.to_database(wholesale_root, final_list)
+            title = []
+            title.append(final_list.pop(0))
+            temp = format().quicksort(final_list, 1)
+            final_list = title + temp
+    
+            for x in range(len(final_list)):
+                provider = final_list.pop(0)
+                if provider[10] != 'Effective Date':
+                    if provider[10] < edate:
+                        provider[11] = "-----"
+                # print len(final_list)
                 for k in range(length):
                     if x == 0:
                         st = xlwt.easyxf('align: horiz center')
-                        sheet.write(x - count,k,provider[k+1],st)
+                        w_sheet.write(x,k,provider[k+1],st)
                     else:
                         if k == 5:
                             st = xlwt.easyxf('align: horiz right')
-                            sheet.write(x - count,k,provider[k+1],st)
+                            w_sheet.write(x,k,provider[k+1],st)
                         elif k == 7:
                             # price increased
                             if provider[11] == 'Increase':
                                 st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
-                                sheet.write(x - count,k,float(provider[k+1]),st)
+                                w_sheet.write(x,k,float(provider[k+1]),st)
                                 # print "marker 1"
                             # price decreased
                             elif provider[11] == 'Decrease':
                                 st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
-                                sheet.write(x - count,k,float(provider[k+1]),st)
+                                w_sheet.write(x,k,float(provider[k+1]),st)
                                 # print "marker 2"
                             else:
                                 st = xlwt.easyxf('align: horiz right')
-                                sheet.write(x - count,k,provider[k+1],st)
+                                w_sheet.write(x,k,provider[k+1],st)
                                 # print "marker 3"
                         elif k == 9:
-                            sheet.write(x - count,k,str(provider[k+1]))
+                            w_sheet.write(x,k,str(provider[k+1]))
                         else:
                             st = xlwt.easyxf('align: horiz left')
-                            sheet.write(x - count,k,provider[k+1],st)
-                            # print "marker 4"
-                        
-        sheet.col(0).width = 6500
-        sheet.col(1).width = 8000
-        sheet.col(2).width = 2500
-        sheet.col(6).width = 2500 
-        sheet.col(8).width = 5000
-        sheet.set_panes_frozen(True)
-        sheet.set_horz_split_pos(1)
-        
-        final_list = []
-        length = 11 #lenght of provider list - 2 (hash key and change value)
-
-        self.to_database(wholesale_root, final_list)
-        title = []
-        title.append(final_list.pop(0))
-        temp = format().quicksort(final_list, 1)
-        final_list = title + temp
-
-        for x in range(len(final_list)):
-            provider = final_list.pop(0)
-            if provider[10] != 'Effective Date':
-                if provider[10] < edate:
-                    provider[11] = "-----"
-            # print len(final_list)
-            for k in range(length):
-                if x == 0:
-                    st = xlwt.easyxf('align: horiz center')
-                    w_sheet.write(x,k,provider[k+1],st)
-                else:
-                    if k == 5:
-                        st = xlwt.easyxf('align: horiz right')
-                        w_sheet.write(x,k,provider[k+1],st)
-                    elif k == 7:
-                        # price increased
-                        if provider[11] == 'Increase':
-                            st = xlwt.easyxf('pattern: pattern solid, fore_color red; align: horiz right')
-                            w_sheet.write(x,k,float(provider[k+1]),st)
-                            # print "marker 1"
-                        # price decreased
-                        elif provider[11] == 'Decrease':
-                            st = xlwt.easyxf('pattern: pattern solid, fore_color green; align: horiz right')
-                            w_sheet.write(x,k,float(provider[k+1]),st)
-                            # print "marker 2"
-                        else:
-                            st = xlwt.easyxf('align: horiz right')
                             w_sheet.write(x,k,provider[k+1],st)
-                            # print "marker 3"
-                    elif k == 9:
-                        w_sheet.write(x,k,str(provider[k+1]))
-                    else:
-                        st = xlwt.easyxf('align: horiz left')
-                        w_sheet.write(x,k,provider[k+1],st)
-                        # print "marker 4"        
-        w_sheet.col(0).width = 6500
-        w_sheet.col(1).width = 8000
-        w_sheet.col(2).width = 2500
-        w_sheet.col(6).width = 2500 
-        w_sheet.col(8).width = 5000
-        w_sheet.set_panes_frozen(True)
-        w_sheet.set_horz_split_pos(1)
-
-        print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
-        #clear out previous working versions
+                            # print "marker 4"        
+            w_sheet.col(0).width = 6500
+            w_sheet.col(1).width = 8000
+            w_sheet.col(2).width = 2500
+            w_sheet.col(6).width = 2500 
+            w_sheet.col(8).width = 5000
+            w_sheet.set_panes_frozen(True)
+            w_sheet.set_horz_split_pos(1)
+    
+            print ('Successfully written. Data for %s is now queued to upload.' %str(edate))
+            #clear out previous working versions
+            
+            #Production version
+            book.save(filename)
+            file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+            if file_id != None:
+                delete_file(file_id)
+            upload_excel(filename)
+            move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+            temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+            if temp_file_id != None:
+                delete_file(temp_file_id)        
+            upload_as_gsheet(filename, 'Rates for ' + str(edate))
+            move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+            
+            # Development version uses test folders
+            #book.save(filename)
+            #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #if file_id != None:
+                #delete_file(file_id)
+            #upload_excel(filename)
+            #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+            #if temp_file_id != None:
+                #delete_file(temp_file_id)        
+            #upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
+            #move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')      
         
-        #Production version
-        book.save(filename)
-        file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        if file_id != None:
-            delete_file(file_id)
-        upload_excel(filename)
-        move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-        temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-        if temp_file_id != None:
-            delete_file(temp_file_id)        
-        upload_as_gsheet(filename, 'Rates for ' + str(edate))
-        move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-        
-        # # Development version uses test folders
-        # book.save(filename)
-        # file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        # if file_id != None:
-        #     delete_file(file_id)
-        # upload_excel(filename)
-        # move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-        # temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
-        # if temp_file_id != None:
-        #     delete_file(temp_file_id)        
-        # upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
-        # move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')        
+        except:
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)            
 
     def write_price(self, change_root, wholesale_root):
         #book = xlwt.Workbook()
@@ -778,168 +788,173 @@ class format():
     # """ EXCEL_FORM takes in both .xls or .xlsx and rearranges the columns to be
     #   correctly ordered.  takes in filename as string, returns new filename."""
     def excel_format(self, filename, source, sheetindex, edate):
-        book = xlrd.open_workbook(filename)
-        sheet = book.sheet_by_index(sheetindex)
-        new_book = xlwt.Workbook()
-        sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True) 
-
-        """Forcing the header of the excel format"""
-        sheet_wr.write(0,0, 'Country')
-        sheet_wr.write(0,1, 'Network')
-        sheet_wr.write(0,2, 'MCC')
-        sheet_wr.write(0,3, 'MNC')
-        sheet_wr.write(0,4, 'MCCMNC')
-        sheet_wr.write(0,5, 'Rate')
-        sheet_wr.write(0,6, 'CURR')
-        # sheet_wr.write(0,7, 'Source')
-        sheet_wr.write(0,7, 'Converted Rate')
-        sheet_wr.write(0,8, 'Source')
-        sheet_wr.write(0,9, 'Effective Date')
-        """Freezing Header Row"""
-        sheet_wr.set_panes_frozen(True)
-        sheet_wr.set_horz_split_pos(1)
-
-        rownum = sheet.nrows
-        colnum = sheet.ncols
-
-        edate_effective = edate + timedelta(days = 1)
-        rate_present = False
-        mccmnc_absent=True
-        mcc_absent=True
-        mnc_absent=True
-        mnc_val=[0]
-        mcc_val=[0]
-        mccmnc_val=[0]
-
-
-        for row in range(rownum):
-            for y in range(colnum):
-                # """Country"""
-                if sheet.cell(row,y).value in column_dictionary[0][column_list[0]]:
-                    for x in range(row+1, rownum):
-                        value = sheet.cell(x,y).value
-                        if value == '':
-                            pass
-                        else:
-                            value = value.lower()
-                            value = value.title()
-                            sheet_wr.write(x-row,0,value)
-                # """Network"""        
-                elif sheet.cell(row,y).value in column_dictionary[1][column_list[1]]:
-                    for x in range(row+1, rownum):
-                        value = sheet.cell(x,y).value
-                        sheet_wr.write(x-row,1,value)
-                # """Country/Network"""
-                elif sheet.cell(row,y).value in column_dictionary[2][column_list[2]]:
-                    for x in range(row+1, rownum):
-                        value = self.separator(sheet.cell(x,y).value)
-                        sheet_wr.write(x-row,0,value[0])
-                        sheet_wr.write(x-row,1,value[1])
-                # """MCC"""
-                elif sheet.cell(row,y).value in column_dictionary[3][column_list[3]]:
-                    mcc_absent=False
-                    for x in range(row+1, rownum):
-                        value = sheet.cell(x,y).value
-                        mcc_val.append(value)
-                        sheet_wr.write(x-row,2,value)
-                # """MNC"""
-                elif sheet.cell(row,y).value in column_dictionary[4][column_list[4]]:
-                    mnc_absent=False
-                    for x in range(row+1, rownum):
-                        value = sheet.cell(x,y).value
-                        mnc_val.append(value)
-                        sheet_wr.write(x-row,3,value)
-                # """MCCMNC"""
-                elif sheet.cell(row,y).value in column_dictionary[5][column_list[5]]:
-                    mccmnc_absent=False
-                    for x in range(row+1, rownum):
-                        value = sheet.cell(x,y).value
-                        mccmnc_val.append(value)
-                        sheet_wr.write(x-row,4,value)
-
-                # """Rate"""
-                elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
-                    rate_present = True
-                    for x in range(len(currency_list)):
-                        if sheet.cell(row,y).value in currency_dictionary[x][currency_list[x]]:
-                            i = x
-                            break
-                    for x in range(row+1, rownum):
-                        if sheet.cell(x,y).value == '-':
-                            value = 0
-                        elif sheet.cell(x, y).value[0] == '$':
-                            temp = sheet.cell(x, y).value
-                            value = temp[2:]
-                            value = float(value)
-                        else:
+        try:
+            book = xlrd.open_workbook(filename)
+            sheet = book.sheet_by_index(sheetindex)
+            new_book = xlwt.Workbook()
+            sheet_wr = new_book.add_sheet("sheet", cell_overwrite_ok = True) 
+    
+            """Forcing the header of the excel format"""
+            sheet_wr.write(0,0, 'Country')
+            sheet_wr.write(0,1, 'Network')
+            sheet_wr.write(0,2, 'MCC')
+            sheet_wr.write(0,3, 'MNC')
+            sheet_wr.write(0,4, 'MCCMNC')
+            sheet_wr.write(0,5, 'Rate')
+            sheet_wr.write(0,6, 'CURR')
+            # sheet_wr.write(0,7, 'Source')
+            sheet_wr.write(0,7, 'Converted Rate')
+            sheet_wr.write(0,8, 'Source')
+            sheet_wr.write(0,9, 'Effective Date')
+            """Freezing Header Row"""
+            sheet_wr.set_panes_frozen(True)
+            sheet_wr.set_horz_split_pos(1)
+    
+            rownum = sheet.nrows
+            colnum = sheet.ncols
+    
+            edate_effective = edate + timedelta(days = 1)
+            rate_present = False
+            mccmnc_absent=True
+            mcc_absent=True
+            mnc_absent=True
+            mnc_val=[0]
+            mcc_val=[0]
+            mccmnc_val=[0]
+    
+    
+            for row in range(rownum):
+                for y in range(colnum):
+                    # """Country"""
+                    if sheet.cell(row,y).value in column_dictionary[0][column_list[0]]:
+                        for x in range(row+1, rownum):
                             value = sheet.cell(x,y).value
-                        if sheet.cell(x,y).value == '':
-                            pass
-                        else:
-                            sheet_wr.write(x-row,5,value)
-                            if currency_list[i] == 'GW':
-                                currency = 'USD'      
-                                # """Adjust converted value - for GW0 and GW111"""
-                                converted = float(str(value)[-4:])/10000
-                                sheet_wr.write(x - row, 5, converted)
-                            elif not currency_list[i] == 'USD':
-                                currency = currency_list[i]
-                                converted = currency_rate[i]*float(value)
+                            if value == '':
+                                pass
                             else:
-                                currency = currency_list[i]
-                                converted = value
-                            sheet_wr.write(x-row,6,currency)
-                            sheet_wr.write(x-row,7,converted)
-                            sheet_wr.write(x-row,8,source)
-                            sheet_wr.write(x-row,9,str(edate_effective))                                
-                else:
-                    pass
-                
-        # """ Computing missing MNC, MCC or MCCMNC Values"""
-        
-        # # """MCCMNC is absent"""
-        if mcc_absent == False and mnc_absent==False and mccmnc_absent==True:
-            for i in range(1,len(mcc_val)):
-                if "," not in str(mnc_val[i]) and "/" not in str(mnc_val[i]):
-                    ind1=str(mcc_val[i]).rfind(".")
-                    ind2=str(mnc_val[i]).rfind(".")
-                    if ind1 != -1 and ind2 != -1:
-                        val=str(mnc_val[i])[:ind2]
-                        if len(val)==1:
-                            val="0"+val
-                        value=str(mcc_val[i])[:ind1]+val                  
-                        sheet_wr.write(i,4,value)
+                                value = value.lower()
+                                value = value.title()
+                                sheet_wr.write(x-row,0,value)
+                    # """Network"""        
+                    elif sheet.cell(row,y).value in column_dictionary[1][column_list[1]]:
+                        for x in range(row+1, rownum):
+                            value = sheet.cell(x,y).value
+                            sheet_wr.write(x-row,1,value)
+                    # """Country/Network"""
+                    elif sheet.cell(row,y).value in column_dictionary[2][column_list[2]]:
+                        for x in range(row+1, rownum):
+                            value = self.separator(sheet.cell(x,y).value)
+                            sheet_wr.write(x-row,0,value[0])
+                            sheet_wr.write(x-row,1,value[1])
+                    # """MCC"""
+                    elif sheet.cell(row,y).value in column_dictionary[3][column_list[3]]:
+                        mcc_absent=False
+                        for x in range(row+1, rownum):
+                            value = sheet.cell(x,y).value
+                            mcc_val.append(value)
+                            sheet_wr.write(x-row,2,value)
+                    # """MNC"""
+                    elif sheet.cell(row,y).value in column_dictionary[4][column_list[4]]:
+                        mnc_absent=False
+                        for x in range(row+1, rownum):
+                            value = sheet.cell(x,y).value
+                            mnc_val.append(value)
+                            sheet_wr.write(x-row,3,value)
+                    # """MCCMNC"""
+                    elif sheet.cell(row,y).value in column_dictionary[5][column_list[5]]:
+                        mccmnc_absent=False
+                        for x in range(row+1, rownum):
+                            value = sheet.cell(x,y).value
+                            mccmnc_val.append(value)
+                            sheet_wr.write(x-row,4,value)
+    
+                    # """Rate"""
+                    elif sheet.cell(row,y).value in column_dictionary[6][column_list[6]]:
+                        rate_present = True
+                        for x in range(len(currency_list)):
+                            if sheet.cell(row,y).value in currency_dictionary[x][currency_list[x]]:
+                                i = x
+                                break
+                        for x in range(row+1, rownum):
+                            if sheet.cell(x,y).value == '-' or sheet.cell(x,y).value == '':
+                                value = 0
+                            elif str(sheet.cell(x, y).value)[0] == '$':
+                                temp = sheet.cell(x, y).value
+                                value = temp[2:]
+                                value = float(value)
+                            else:
+                                value = sheet.cell(x,y).value
+                            if sheet.cell(x,y).value == '':
+                                pass
+                            else:
+                                sheet_wr.write(x-row,5,value)
+                                if currency_list[i] == 'GW':
+                                    currency = 'USD'      
+                                    # """Adjust converted value - for GW0 and GW111"""
+                                    converted = float(str(value)[-4:])/10000
+                                    sheet_wr.write(x - row, 5, converted)
+                                elif not currency_list[i] == 'USD':
+                                    currency = currency_list[i]
+                                    converted = currency_rate[i]*float(value)
+                                else:
+                                    currency = currency_list[i]
+                                    converted = value
+                                sheet_wr.write(x-row,6,currency)
+                                sheet_wr.write(x-row,7,converted)
+                                sheet_wr.write(x-row,8,source)
+                                sheet_wr.write(x-row,9,str(edate_effective))                                
                     else:
-                        val1 = str(mcc_val[i])
-                        val2 = str(mnc_val[i])
-                        value = val1 + val2
-                        sheet_wr.write(i,4,value)
-                else:
-                    value=""
-                    sheet_wr.write(i,4,value)
+                        pass
                     
-        # """MNC and MNC individual columns are absent"""
-        if mccmnc_absent==False and mcc_absent== True and mnc_absent==True:
-            for i in range(1,len(mccmnc_val)):
-                value_mcc=str(mccmnc_val[i])[:3]
-                sheet_wr.write(i,2,value_mcc)
-                value_mnc=str(mccmnc_val[i])[3:]
-                if "." in value_mnc:
-                    ind3=value_mnc.index(".")
-                    value_mnc=value_mnc[:ind3]
-                sheet_wr.write(i,3,value_mnc)
-
-        if not rate_present:
-            move_to_day_folder(filename, edate, 'NoRates')
-            return -1
-
-        index = filename.rfind('.')
-        filename1 = filename[:index]
-        filename1 = filename1 + ' FORMATTED.xls'
-        new_book.save(filename1)
-        print "File has been properly formatted."
-        # os.remove(filename)
-        return filename1
+            # """ Computing missing MNC, MCC or MCCMNC Values"""
+            
+            # # """MCCMNC is absent"""
+            if mcc_absent == False and mnc_absent==False and mccmnc_absent==True:
+                for i in range(1,len(mcc_val)):
+                    if "," not in str(mnc_val[i]) and "/" not in str(mnc_val[i]):
+                        ind1=str(mcc_val[i]).rfind(".")
+                        ind2=str(mnc_val[i]).rfind(".")
+                        if ind1 != -1 and ind2 != -1:
+                            val=str(mnc_val[i])[:ind2]
+                            if len(val)==1:
+                                val="0"+val
+                            value=str(mcc_val[i])[:ind1]+val                  
+                            sheet_wr.write(i,4,value)
+                        else:
+                            val1 = str(mcc_val[i])
+                            val2 = str(mnc_val[i])
+                            value = val1 + val2
+                            sheet_wr.write(i,4,value)
+                    else:
+                        value=""
+                        sheet_wr.write(i,4,value)
+                        
+            # """MNC and MNC individual columns are absent"""
+            if mccmnc_absent==False and mcc_absent== True and mnc_absent==True:
+                for i in range(1,len(mccmnc_val)):
+                    value_mcc=str(mccmnc_val[i])[:3]
+                    sheet_wr.write(i,2,value_mcc)
+                    value_mnc=str(mccmnc_val[i])[3:]
+                    if "." in value_mnc:
+                        ind3=value_mnc.index(".")
+                        value_mnc=value_mnc[:ind3]
+                    sheet_wr.write(i,3,value_mnc)
+    
+            if not rate_present:
+                move_to_day_folder(filename, edate, 'NoRates')
+                return -1
+    
+            index = filename.rfind('.')
+            filename1 = filename[:index]
+            filename1 = filename1 + ' FORMATTED.xls'
+            new_book.save(filename1)
+            print "File has been properly formatted."
+            # os.remove(filename)
+            return filename1
+        except:
+            error = sys.exc_info()[0]
+            print("Error: %s" % error)   
+            #move_to_day_folder(filename, edate, '0BzlU44AWMToxOGtyYWZzSVAyNkE')
 
     # """Monty_is_special - formats the Rate to EUR, as it is not labeled properly """
     def monty_is_special(self, filename, og_file):
