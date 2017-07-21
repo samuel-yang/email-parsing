@@ -1,6 +1,6 @@
 import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, logging
 # from cstringIO import stringIO
-from CurrencyConverter import *
+from CurrencyConverterNew import *
 from decimal import *
 from Google_API_Manipulation import *
 from time import sleep
@@ -63,7 +63,7 @@ def calltrade(filename, root, source, edate, upload_list, change_header):
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'
-    format().calltrade(filename1)
+    format().calltrade(filename1, edate)
     bst().source_build(root, filename1, change_header)
     index = filename.rfind('.')
     short = filename[:index]
@@ -125,7 +125,7 @@ def monty(filename, root, source, edate, upload_list, change_header):
     if filename2 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
         return 'No rate in document.'    
-    filename3 = format().monty_is_special(filename2, filename1)
+    filename3 = format().monty_is_special(filename2, filename1, edate)
     bst().source_build(root, filename3, change_header) 
     index = filename.rfind('.')
     short = filename[:index]
@@ -452,6 +452,11 @@ def main():
         for i in range(len(rate_list)):
             file_clean(rate_list[i])
             logging.info(": Source Compiler has finished running.")
+
+        file_id = find_file_id('Currency Exchange')
+        if file_id != None:
+            delete_file(file_id)
+        upload_as_gsheet('Currency Exchange.xlsx', 'Currency Exchange')
         print("Source Compiler has finished running.")
     
     except:

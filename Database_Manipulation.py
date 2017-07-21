@@ -12,7 +12,7 @@
 
 import xlrd, xlwt, pdfminer, csv, shutil, os, xlutils, sys, openpyxl, gspread, logging
 # from cstringIO import stringIO
-from CurrencyConverter import *
+from CurrencyConverterNew import *
 from decimal import *
 from Google_API_Manipulation import *
 from datetime import *
@@ -24,8 +24,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 """ Currency Rate List defined here, and called so that it is only called once per program iteration"""
-global currency_rate, currency_dictionary, currency_list
-currency_rate = get_rates()
+global currency_dictionary, currency_list
 
 currency_dictionary =  ({'USD': ['Rate', 'Price', 'New Price', 'New Price (USD)', 'Rate - USD']},
                         {'EUR': ['New Price(Euro)', 'Price Euro', 'New Price EUR', 'New Price (EUR)', 'Price \nEUR/SMS', 'Price in EUR']},
@@ -96,8 +95,10 @@ class bst():
             sheet = book.add_sheet("Sheet", cell_overwrite_ok=True)
             filename_old = filename
             book.save(filename_old + '.xls')
+            day_before = edate
             return
 
+        currency_rate = get_rate_for_date(day_before)
         filename = filename_old + '.xls'
         book = xlrd.open_workbook(filename, formatting_info=True)
         sheet = book.sheet_by_index(0)
@@ -750,7 +751,8 @@ class format():
 
     column_list = ['Country', 'Network', 'Country/Network', 'MCC', 'MNC', 'MCCMNC', 'Rate'] # , 'CURR', 'Source']
 
-    def calltrade(self, filename):
+    def calltrade(self, filename, edate):
+        currency_rate = get_rate_for_date(edate)
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(0)
         rownum = sheet.nrows
@@ -798,6 +800,7 @@ class format():
     #   correctly ordered.  takes in filename as string, returns new filename."""
     def excel_format(self, filename, source, sheetindex, edate):
         try:
+            currency_rate = get_rate_for_date(edate)
             book = xlrd.open_workbook(filename)
             sheet = book.sheet_by_index(sheetindex)
             new_book = xlwt.Workbook()
@@ -968,7 +971,8 @@ class format():
             #move_to_day_folder(filename, edate, '0BzlU44AWMToxOGtyYWZzSVAyNkE')
 
     # """Monty_is_special - formats the Rate to EUR, as it is not labeled properly """
-    def monty_is_special(self, filename, og_file):
+    def monty_is_special(self, filename, og_file, edate):
+        currency_rate = get_rate_for_date(edate)
         book = xlrd.open_workbook(filename)
         sheet = book.sheet_by_index(0)
         og_book = xlrd.open_workbook(og_file)
