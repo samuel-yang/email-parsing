@@ -21,7 +21,6 @@ def get_rates(rate_in, date):
 		currency_list.append(rate)
 
 	return currency_list
-	print currency_list
 
 def get_multipe_rates(dates):
 	date_list = {}

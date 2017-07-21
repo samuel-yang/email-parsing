@@ -238,7 +238,7 @@ class bst():
                     pass
                 # """Comparing rates of various nodes, typecasting to float"""
                 # """Price decreased"""
-                elif float(root.data[8]) > float(node.data[8]):
+                elif float(root.data[6]) > float(node.data[6]):
                     node.data[11] = 'Decrease'
                     root.data = node.data
                     data = root.data
@@ -267,7 +267,7 @@ class bst():
                         self.insert_new(change_root, new_node)                        
 
                 # """Price increased"""
-                elif float(root.data[8]) < float(node.data[8]):
+                elif float(root.data[6]) < float(node.data[6]):
                     node.data[11] = 'Increase'
                     root.data = node.data
                     data = root.data

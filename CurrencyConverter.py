@@ -26,6 +26,7 @@ def get_currency_rate(currency, rate_in):
             rate_in_currency = rates["rates"][rate_in]
             return rate_in_currency
     except requests.ConnectionError as error:
+        logging.error(": ", error)
         print error
         sys.exit(1)
 
@@ -35,15 +36,18 @@ def get_rates():
     for currency in base_currencies:
         rate = get_currency_rate(currency, rate_in)
         currency_list.append(rate)
+        logging.info(": 1 " + currency + " = " + str(rate) + " " + rate_in)
         print("1 " + currency + " = " + str(rate) + " " + rate_in)
     return currency_list    
 
 def convert_currency(base_currency, rate_in):
     rate = get_currency_rate(base_currency, rate_in)
+    logging.info(": 1 " + base_currency + " = " + str(rate) + " " + rate_in)
     print("1 " + base_currency + " = " + str(rate) + " " + rate_in)
     return rate    
 
 def main():
+    logging.info(get_rates())
     print(get_rates())
 
 if __name__ == '__main__':

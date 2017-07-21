@@ -452,7 +452,7 @@ def main():
         for i in range(len(rate_list)):
             file_clean(rate_list[i])
             logging.info(": Source Compiler has finished running.")
-
+    
         file_id = find_file_id('Currency Exchange')
         if file_id != None:
             delete_file(file_id)
