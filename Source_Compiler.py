@@ -92,6 +92,29 @@ def clx(filename, root, source, edate, upload_list, change_header):
     file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
+# """Identidad Telecom"""
+def identidad(filename, root, source, edate, upload_list, change_header, wholesale_header):
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    filename1 = format().excel_format(filename, source, 0, edate)
+    if filename1 == -1:
+        move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
+        return 'No rate in document.'
+    index = filename.rfind('.')
+    short = filename[:index]
+    index = len(filename) - index
+    ext = filename[-index:]
+    newname = short + ' ' + str(edate) + ext
+    wholesale_name = "standard"
+    if short.rfind(wholesale_name) != -1:
+        bst().source_build(wholesale_header, filename1, change_header)
+    else:
+        bst().source_build(root, filename1, change_header)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    file_clean(filename)
+    return ("%s has been processed, now waiting to be uploaded." % filename)
+
+
 # """Mitto AG"""
 def mitto(filename, root, source, edate, upload_list, change_header, wholesale_header):
     file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
@@ -238,13 +261,13 @@ def main():
                             datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
         logging.info("Source Compiler started running.")
         
-        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub', 'Identidad Telecom']
+        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub']
         #For Windows Platforms
         if platform == 'win32' or platform == 'win64':
-            special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade']
+            special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade',  'Identidad Telecom']
         else:
             # For NON - Windows Platforms
-            special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG', 'Calltrade']
+            special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', '', 'Mitto AG', 'Calltrade',  'Identidad Telecom']
     
         # title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 0]
         title = [0000000000000000000, 'Country', 'Network', 'MCC', 'MNC', 'MCCMNC', 'Rate', 'CURR', 'Converted Rate', 'Source', 'Effective Date', 'Price Change']
@@ -419,6 +442,12 @@ def main():
                     # """Calltrade"""
                     elif file_to_process[1] == special_dictionary[j] and j == 7:
                         status = calltrade(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
+                        print 'Status of: ', file_to_process[0], ' is: ', status
+                        processed = True
+                    # """Identidad Telecom
+                    elif file_to_process[1] == special_dictionary[j] and j == 8:
+                        status = identidad(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header, wholesale_header)
                         logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True
