@@ -13,9 +13,6 @@ platform = sys.platform
 if platform == 'win32' or platform == 'win64':
     import win32com.client
 
-logging.basicConfig(filename='Source Compiler ' +  str(datetime.now().strftime('%Y-%m-%d %H%M%S')) + '.log', format='%(levelname)s:%(message)s', 
-                    datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
-
 # global database, today, tomorrow
 global client
 reload(sys)
@@ -30,13 +27,13 @@ def agile(filename, root, source, edate, upload_list, change_header):
     ws = wb.Worksheets(1)
     for shape in ws.Shapes:
         shape.Delete()
-    logging.info(": Deleted all images from %s" % filename)    
+    logging.info("Deleted all images from %s" % filename)    
     print("Deleted all images from %s" % filename)
     ws.Rows(ws.UsedRange.Rows.Count).Delete()
-    logging.info(": Deleted last row from %s" % filename)
+    logging.info("Deleted last row from %s" % filename)
     print("Deleted last row from %s" % filename)  
     wb.Save()
-    logging.info(": Saved %s" % filename)    
+    logging.info("Saved %s" % filename)    
     print("Saved %s" % filename)
     excel.Quit()
     
@@ -235,6 +232,12 @@ def general(filename, root, source, edate, upload_list, change_header):
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
 def main():
     try:
+        time_start = str(datetime.now().strftime('%Y-%m-%d %H%M%S'))
+        log_file = 'Source Compiler ' +  time_start + '.log'
+        logging.basicConfig(filename=log_file, format='%(asctime)s - %(levelname)s: %(message)s', 
+                            datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
+        logging.info("Source Compiler started running.")
+        
         general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub']
         #For Windows Platforms
         if platform == 'win32' or platform == 'win64':
@@ -254,13 +257,13 @@ def main():
         dl_list = dl_folder('0BzlU44AWMToxZnh5ekJaVUJUc2c')
             
         if len(dl_list) == 0:
-            logging.info(": No new files to be processed.")
+            logging.info("No new files to be processed.")
             print "No new files to be processed."
-            logging.info(": Source_Compiler has succesfully run to completion.")
-            print "\nSource_Compiler has succesfully run to completion.\n\n\n"
+            logging.info("Source Compiler has finished running.")
+            print("Source_Compiler has finished running.\n\n\n")
             return
         else:
-            logging.info(": Download list is: ", dl_list)
+            logging.info("Download list is: ", dl_list)
             print "\nDownload list is: ", dl_list
     
         # """Catches already processed files and modifies name so that emails can be found from the filenames"""
@@ -281,25 +284,28 @@ def main():
         company_list = get_email_attachment_list(dl_list)
     
         if company_list == []:
-            logging.info(": No 'New' messages in the Inbox, Source_Compiler has run to completion.")
-            print ("No 'New' messages in the Inbox, Source_Compiler has run to completion.")
+            logging.info("No 'New' messages in the Inbox.")
+            print ("No 'New' messages in the Inbox.")    
             for i in range(len(dl_list)):
                 filename = dl_list.pop()
-                file_clean(filename)
+                file_clean(filename)   
+            
+            logging.info("Source Compiler has finished running.")
+            print("Source_Compiler has finished running.")            
             return
         else:
-            logging.info(": Email attachment list is: ", company_list)
+            logging.info("Email attachment list is: ", company_list)
             print "Email attachment list is: ", company_list 
     
         if len(company_list) != len(dl_list):
-            logging.info(": Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
+            logging.info("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
             print ("Not all files downloaded for processing were located as an attachment in the emails.  'New' label status of email may have been removed.")
     
         index = len(company_list) - 1
         check_date = company_list[index][3]
         # as long as there is something in the company list
         
-        temp = check_date - timedelta(days=1)
+        temp = check_date - timedelta(days=7)
         rate_list = []
         
         #Production version
@@ -333,7 +339,7 @@ def main():
             try:
                 file_to_process = company_list.pop()
             except IndexError:
-                logging.info(": No more files to be processed")
+                logging.info("No more files to be processed")
                 print ("No more files to be processed")
             # date change enters into if statement and builds last case
             if check_date != file_to_process[3]:
@@ -351,9 +357,9 @@ def main():
     
     
             processed = False
-            logging.info(": File currently being processed is: " + file_to_process[0])
+            logging.info("File currently being processed is: " + file_to_process[0])
             print "\nFile currently being processed is: ", file_to_process[0]
-            logging.info(": Remaining number of files to be processed is: " + str(len(company_list)))
+            logging.info("Remaining number of files to be processed is: " + str(len(company_list)))
             print "Remaining number of files to be processed is: ", len(company_list)
     
             for j in range(len(general_dictionary)):
@@ -364,7 +370,7 @@ def main():
                     ext = file_to_process[0][-index:]
                     if ext == '.xls' or ext == '.xlsx':
                         status = general(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print "Status of: ", file_to_process[0], ' is: ', status
                         processed = True
                 # """Special use case scenario"""
@@ -372,37 +378,37 @@ def main():
                     # """Tedexis"""
                     if file_to_process[1] == special_dictionary[j] and j == 0:
                         status = tedexis(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print "Status of: ", file_to_process[0], ' is: ', status
                         processed = True                
                     # """Monty Mobile"""
                     elif file_to_process[1] == special_dictionary[j] and j == 1:
                         status = monty(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True
                     # """Tata Communications"""
                     elif file_to_process[1] == special_dictionary[j] and j == 2:
                         status = tata(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True
                     # """Silverstreet"""
                     elif file_to_process[1] == special_dictionary[j] and j == 3:
                         status = silverstreet(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True
                     # """CLX Networks"""
                     elif file_to_process[1] == special_dictionary[j] and j == 4:
                         status = clx(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True
                     # """Agile Telecom"""
                     elif file_to_process[1] == special_dictionary[j] and j == 5:
                         status = agile(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True    
                     # """Mitto AG"""
@@ -413,7 +419,7 @@ def main():
                     # """Calltrade"""
                     elif file_to_process[1] == special_dictionary[j] and j == 7:
                         status = calltrade(file_to_process[0], header, file_to_process[1], file_to_process[3], upload_list, change_header)
-                        logging.info(": Status of: "+ file_to_process[0] + ' is: ' + status)
+                        logging.info("Status of: "+ file_to_process[0] + ' is: ' + status)
                         print 'Status of: ', file_to_process[0], ' is: ', status
                         processed = True
                     # """Not special case"""
@@ -425,7 +431,7 @@ def main():
                 file_source = file_to_process[1]
                 if file_to_process[1] == None:
                     file_source = 'None'
-                    logging.warning(': The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
+                    logging.warning('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
                        '. Contact the developer to build support for this document.')
                 print ('The file: ' + file_to_process[0] + ' is currently not supported.  Source of file is: ' + file_source + 
                        '. Contact the developer to build support for this document.')
@@ -440,10 +446,10 @@ def main():
         rate_list.append("Rates for " + str(check_date) + ".xls")    
         while check_date < date.today():
             check_date = check_date + timedelta(days = 1)
-            logging.info(": Building %s database." % str(check_date))
+            logging.info("Building %s database." % str(check_date))
             print("Building %s database." % str(check_date))
             bst().database_build(header, check_date, change_header, wholesale_header) 
-            logging.info(": Writing %s database." % str(check_date))
+            logging.info("Writing %s database." % str(check_date))
             print("Writing %s database." % str(check_date))
             bst().write(header, check_date, wholesale_header)
             rate_list.append("Rates for " + str(check_date) + ".xls")
@@ -451,13 +457,19 @@ def main():
         
         for i in range(len(rate_list)):
             file_clean(rate_list[i])
-            logging.info(": Source Compiler has finished running.")
     
         file_id = find_file_id('Currency Exchange')
         if file_id != None:
             delete_file(file_id)
         upload_as_gsheet('Currency Exchange.xlsx', 'Currency Exchange')
-        print("Source Compiler has finished running.")
+               
+        logging.info("Source Compiler has finished running.")
+        print("Source Compiler has finished running.")        
+        
+        upload_log(log_file)
+        move_to_folder_using_name(log_file, '0BzlU44AWMToxVlQ4cjBRTy1hOUE')
+        log_id = find_file_id_using_parent(log_file, '0BzlU44AWMToxVlQ4cjBRTy1hOUE')
+        #print("Log file \"" + log_file + "\" (ID: %s) has been uploaded." % log_id)
     
     except:
         error = sys.exc_info()[0]

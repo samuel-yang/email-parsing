@@ -3,6 +3,7 @@ from fixerio import Fixerio
 from Google_API_Manipulation import *
 import openpyxl
 import os
+import logging
 
 global rate_in
 
@@ -71,6 +72,10 @@ def get_rate_for_date(checkdate):
 	for i in range(rownum-1):
 		i = i + 1
 		temp_date = sheet.cell(row=i+1,column=1).value
+		if temp_date == None:
+			temp_date = sheet.cell(row=i,column=1).value
+			temp_date = temp_date.date()
+			break		
 		temp_date = temp_date.date() 
 		if temp_date < checkdate:
 			pass
@@ -82,6 +87,7 @@ def get_rate_for_date(checkdate):
 				value = sheet.cell(row=i+1,column=j+2).value
 				rate_list.append(value)
 			return rate_list
+		
 		row = i
 			
 	if no_date:
