@@ -238,7 +238,7 @@ def main():
                             datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
         logging.info("Source Compiler started running.")
         
-        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub']
+        general_dictionary = ['MMDSmart', 'UPM Telecom', 'OpenMarket', 'Wavecell', 'Bics', 'C3ntro Telecom', 'HORISEN', 'KDDI Global', 'Lanck Telecom', 'Viahub', 'Identidad Telecom']
         #For Windows Platforms
         if platform == 'win32' or platform == 'win64':
             special_dictionary = ['Tedexis', 'Monty Mobile', 'Tata Communications', 'Silverstreet', 'CLX Networks', 'Agile Telecom', 'Mitto AG', 'Calltrade']
@@ -309,26 +309,26 @@ def main():
         rate_list = []
         
         #Production version
-        while True:
-            if temp > date.today():
-                break
-            file_name = "Rates for " + str(temp) + ".xls"
-            file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            if file_id != None:
-                dl_file(file_id, file_name)
-                rate_list.append(file_name)
-            temp = temp + timedelta(days=1)
-        
-        #Test folder
         #while True:
             #if temp > date.today():
                 #break
             #file_name = "Rates for " + str(temp) + ".xls"
-            #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
             #if file_id != None:
                 #dl_file(file_id, file_name)
                 #rate_list.append(file_name)
             #temp = temp + timedelta(days=1)
+        
+        #Test folder
+        while True:
+            if temp > date.today():
+                break
+            file_name = "Rates for " + str(temp) + ".xls"
+            file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            if file_id != None:
+                dl_file(file_id, file_name)
+                rate_list.append(file_name)
+            temp = temp + timedelta(days=1)
     
         # first build of database here
         bst().database_build(header, check_date, change_header, wholesale_header) 

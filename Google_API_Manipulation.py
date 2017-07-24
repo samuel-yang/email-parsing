@@ -1201,7 +1201,7 @@ def upload_excel(file_name):
 def upload_log(file_name):
     """Uploads a log (.log) file to Drive.
     
-    Default path is working directory. Takes log files (.log) only.
+    Default path is working directory. Takes plain text files only.
 
     Args:
         file_name: full name of the file including extension.
