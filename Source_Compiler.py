@@ -526,6 +526,7 @@ if __name__ == '__main__':
         #print("Log file \"" + log_file + "\" (ID: %s) has been uploaded." % log_id)
         
         os.remove(log_file_time)
+        os.remove("Source Compiler.log")
         
         sleep(1800)
         
