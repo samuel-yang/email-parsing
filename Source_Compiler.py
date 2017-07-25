@@ -510,7 +510,6 @@ def main():
 #     print ("all done")
 
 if __name__ == '__main__':
-    #global global_log_file
     while True:
         time_start = str(datetime.now().strftime('%Y-%m-%d %H%M%S'))
         log_file_time = 'Source Compiler ' +  time_start + '.log'
@@ -522,8 +521,6 @@ if __name__ == '__main__':
         os.rename("Source Compiler.log", log_file_time)
         upload_log(log_file_time)
         move_to_folder_using_name(log_file_time, '0BzlU44AWMToxVlQ4cjBRTy1hOUE')
-        #log_id = find_file_id_using_parent(log_file_time, '0BzlU44AWMToxVlQ4cjBRTy1hOUE')
-        #print("Log file \"" + log_file + "\" (ID: %s) has been uploaded." % log_id)
         
         os.remove(log_file_time)
         os.remove("Source Compiler.log")

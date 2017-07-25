@@ -650,7 +650,7 @@ def get_email(ind):
     label_ids = ["INBOX", "Label_2"]
     
     results = gmail_service.users().messages().list(userId='me',labelIds=label_ids).execute()
-    #messages is the list of messages 
+    # messages is the list of messages 
     messages = results['messages']
     mail = gmail_service.users().messages().get(userId='me', id=messages[ind]['id'], format='full').execute()
     return mail
@@ -892,7 +892,7 @@ def convert_date_email(date):
     Returns:
         date_obj, the date-time object.    
     '''
-    #Reg-ex for 4 digit numbers
+    # Reg-ex for 4 digit numbers
     form = r"[0-9]{4}"
     find = re.findall(form, date)[0]
     start=0
