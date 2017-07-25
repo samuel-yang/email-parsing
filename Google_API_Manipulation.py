@@ -3,8 +3,9 @@ from apiclient.http import MediaFileUpload, MediaIoBaseDownload
 from apiclient import errors
 from oauth2client import client, tools
 from oauth2client.file import Storage
+from write_log import *
 
-import base64, googleapiclient, httplib2, os, io, xlrd, datetime, re, logging
+import base64, googleapiclient, httplib2, os, io, xlrd, datetime, re
 
 try:
     import argparse
@@ -46,7 +47,7 @@ def get_credentials():
             credentials = tools.run_flow(flow, store, flags)
         else: # Needed only for compatibility with Python 2.6
             credentials = tools.run(flow, store)
-        logging.info("Storing credentials to " + credential_path)
+        log_file().info("Source Compiler.log", "Storing credentials to " + credential_path)
         print("Storing credentials to " + credential_path)
     return credentials
 
@@ -100,7 +101,7 @@ def create_folder(name):
     }
     file = drive_service.files().create(body=file_metadata,
                                         fields='id').execute()
-    logging.info("Created folder \"" + name + "\" (ID: %s)" % file.get('id'))
+    log_file().info("Source Compiler.log", "Created folder \"" + name + "\" (ID: %s)" % file.get('id'))
     print("Created folder \"" + name + "\" (ID: %s)" % file.get('id'))  
 
 def delete_file(file_id):
@@ -114,10 +115,10 @@ def delete_file(file_id):
     
     try:
         drive_service.files().delete(fileId=file_id).execute()
-        logging.info("Deleted file: " + file_name)
+        log_file().info("Source Compiler.log", "Deleted file: " + file_name)
         print("Deleted file: ", file_name)
     except errors.HttpError, error:
-        logging.error("An error occurred during delete attempt: %s" % error)
+        log_file().error("Source Compiler.log", "An error occurred during delete attempt: %s" % error)
         print("An error occurred: %s" % error)    
 
 def clean_folder(folder_id):
@@ -174,10 +175,10 @@ def clean_folder(folder_id):
             break;
     
     if (delete == False):
-        logging.info("No files found to remove from " + folder_name + " (ID: " + parent_id + ").")
+        log_file().info("Source Compiler.log", "No files found to remove from " + folder_name + " (ID: " + parent_id + ").")
         print("No files found to remove from " + folder_name + " (ID: " + parent_id + ").")
     else:
-        logging.info("Finished cleaning folder from " + folder_name + " (ID: " + parent_id + ").")  
+        log_file().info("Source Compiler.log", "Finished cleaning folder from " + folder_name + " (ID: " + parent_id + ").")  
         print("Finished cleaning folder from " + folder_name + " (ID: " + parent_id + ").")     
 
 def rename_file(file_id, newname):
@@ -196,10 +197,10 @@ def rename_file(file_id, newname):
     
     try:
         file = drive_service.files().update(fileId=file_id, body=file_metadata, fields='id').execute()
-        logging.info("File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file_id))
+        log_file().info("Source Compiler.log", "File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file_id))
         print("File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file_id))
     except TypeError:
-        logging.error("Could not rename file.")
+        log_file().error("Source Compiler.log", "Could not rename file.")
         print("Could not rename file.")
         pass
 
@@ -221,10 +222,10 @@ def rename_file_using_name(filename, newname):
     
     try:
         file = drive_service.files().update(fileId=file_id, body=file_metadata, fields='id').execute()
-        logging.info(": File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file_id))        
+        log_file().info("Source Compiler.log", "File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file_id))        
         print("File \"{0}\" renamed as: {1} (ID: {2}).".format(filename, newname, file_id))
     except TypeError:
-        logging.error("Could not rename file.")
+        log_file().error("Source Compiler.log", "Could not rename file.")
         print("Could not rename file.")        
         pass     
         
@@ -242,11 +243,11 @@ def dl_file(file_id, file_name):
     fh = io.FileIO(file_name, 'wb')
     downloader = MediaIoBaseDownload(fh, request)
     done = False
-    logging.info("Downloading " + file_name + " (ID: " + file_id + ").")
+    log_file().info("Source Compiler.log", "Downloading " + file_name + " (ID: " + file_id + ").")
     print("Downloading " + file_name + " (ID: " + file_id + ").")
     while done is False:
         status, done = downloader.next_chunk()
-        logging.info("Download %d%%." % int(status.progress() * 100))
+        log_file().info("Source Compiler.log", "Download %d%%." % int(status.progress() * 100))
         print("Download %d%%." % int(status.progress() * 100))
      
 def export_sheet(file_id):
@@ -264,11 +265,11 @@ def export_sheet(file_id):
     fh = io.FileIO(file_name + '.xlsx', 'wb')
     downloader = MediaIoBaseDownload(fh, request)
     done = False
-    logging.info("Downloading " + file_name + " (ID: " + file_id + ").")
+    log_file().info("Source Compiler.log", "Downloading " + file_name + " (ID: " + file_id + ").")
     print("Downloading " + file_name + " (ID: " + file_id + ").")
     while done is False:
         status, done = downloader.next_chunk()
-        logging.info("Download %d%%." % int(status.progress() * 100))
+        log_file().info("Source Compiler.log", "Download %d%%." % int(status.progress() * 100))
         print "Download %d%%." % int(status.progress() * 100)    
 
 def dl_folder(folder_id):
@@ -300,7 +301,7 @@ def dl_folder(folder_id):
             
             if (extension == 'xls') or (extension == 'xlsx') or (extension == 'csv') or (extension == 'pdf'):
                 files_exist = True
-                logging.info("Found file: %s (ID: %s)" % (file_name, file_id))
+                log_file().info("Source Compiler.log", "Found file: %s (ID: %s)" % (file_name, file_id))
                 print ("Found file: %s (ID: %s)" % (file_name, file_id))
                 count = 0
                 temp = file_name_no_extension
@@ -360,10 +361,10 @@ def dl_folder(folder_id):
         
     items = response.get('files', [])
     if (not items or files_exist == False):
-        logging.info("No files found to download from " + folder_name + " (ID: " + parent_id + ").")
+        log_file().info("Source Compiler.log", "No files found to download from " + folder_name + " (ID: " + parent_id + ").")
         print("No files found to download from " + folder_name + " (ID: " + parent_id + ").")
     else:
-        logging.info("Finished downloading files from " + folder_name + " (ID: " + parent_id + ").")
+        log_file().info("Source Compiler.log", "Finished downloading files from " + folder_name + " (ID: " + parent_id + ").")
         print("Finished downloading files from " + folder_name + " (ID: " + parent_id + ").")
         #print("List of Files:")
         #for item in items:
@@ -403,7 +404,7 @@ def get_filenames_in_folder(folder_id):
             
             if (extension == 'xls') or (extension == 'xlsx') or (extension == 'csv') or (extension == 'pdf'):
                 files_exist = True
-                logging.info("Found file: %s (ID: %s)" % (file_name_full, file_id))
+                log_file().info("Source Compiler.log", "Found file: %s (ID: %s)" % (file_name_full, file_id))
                 print ("Found file: %s (ID: %s)" % (file_name_full, file_id))
                 file_list.append(file_name_full.encode('utf-8'))
                     
@@ -413,10 +414,10 @@ def get_filenames_in_folder(folder_id):
         
     items = response.get('files', [])
     if (not items or files_exist == False):
-        logging.info("No files found in " + folder_name + " (" + parent_id + ").")
+        log_file().info("Source Compiler.log", "No files found in " + folder_name + " (" + parent_id + ").")
         print("No files found in " + folder_name + " (" + parent_id + ").")
     else:
-        logging.info("Finished retrieving file names from " + folder_name + " (" + parent_id + ").")
+        log_file().info("Source Compiler.log", "Finished retrieving file names from " + folder_name + " (" + parent_id + ").")
         print("Finished retrieving file names from " + folder_name + " (" + parent_id + ").")
         #print(file_list)
             
@@ -451,7 +452,7 @@ def find_file_id(filename):
     
     #If no matching files found
     if file_id == None:
-        logging.warning("File \"%s\" not found." % filename)
+        log_file().warning("Source Compiler.log", "File \"%s\" not found." % filename)
         print("File \"%s\" not found." % filename)
     return file_id
 
@@ -485,7 +486,7 @@ def find_file_id_using_parent(filename, parent_id):
     
     #If no matching files found
     if file_id == None:
-        logging.warning("File \"%s\" not found." % filename)        
+        log_file().warning("Source Compiler.log", "File \"%s\" not found." % filename)        
         print("File \"%s\" not found." % filename)
     return file_id
 
@@ -518,10 +519,10 @@ def find_file_name(file_id):
     #If no matching files found
     if file_name == None:
         if file_id == None:
-            logging.warning("No file ID given.")
+            log_file().warning("Source Compiler.log", "No file ID given.")
             print("No file ID given.")
         else:
-            logging.warning("File with ID \"" + file_id + "\" not found.")
+            log_file().warning("Source Compiler.log", "File with ID \"" + file_id + "\" not found.")
             print(": File with ID \"" + file_id + "\" not found.")
         
     return file_name
@@ -548,13 +549,13 @@ def move_to_folder(file_id, folder_id):
                                         addParents=parent_id,
                                         removeParents=previous_parents,
                                         fields='id, parents').execute()
-        logging.info("Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
+        log_file().info("Source Compiler.log", "Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
         print("Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
     except TypeError:
-        logging.error("Could not find file to move.")
+        log_file().error("Source Compiler.log", "Could not find file to move.")
         print("Could not find file to move.")    
     except googleapiclient.errors.HttpError:
-        logging.error("Invalid folder ID.")
+        log_file().error("Source Compiler.log", "Invalid folder ID.")
         print("Invalid folder ID.")
 
 def move_to_folder_using_name(filename, folder_id):
@@ -581,13 +582,13 @@ def move_to_folder_using_name(filename, folder_id):
                                         addParents=parent_id,
                                         removeParents=previous_parents,
                                         fields='id, parents').execute()
-        logging.info("Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
+        log_file().info("Source Compiler.log", "Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
         print("Moved \"" + filename + "\" (ID: %s) to " % file_id + folder_name + " (ID: %s)" % parent_id)
     except TypeError:
-        logging.error("Could not find file to move.")
+        log_file().error("Source Compiler.log", "Could not find file to move.")
         print("Could not find file to move.")    
     except googleapiclient.errors.HttpError:
-        logging.error("Invalid folder ID.")
+        log_file().error("Source Compiler.log", "Invalid folder ID.")
         print("Invalid folder ID.")
    
 def upload_as_gsheet(file_to_upload, filename):
@@ -629,10 +630,10 @@ def upload_as_gsheet(file_to_upload, filename):
         file = drive_service.files().create(body=file_metadata,
                                         media_body=media,
                                         fields='id').execute()
-        logging.info("File \"{0}\" uploaded as: {1} (ID: {2}).".format(file_to_upload, filename, file.get('id')))
+        log_file().info("Source Compiler.log", "File \"{0}\" uploaded as: {1} (ID: {2}).".format(file_to_upload, filename, file.get('id')))
         print("File \"{0}\" uploaded as: {1} (ID: {2}).".format(file_to_upload, filename, file.get('id')))    
     else:
-        logging.error("Invalid file name or extension. Provide full file name with .xls or .xlsx extensions.")
+        log_file().error("Source Compiler.log", "Invalid file name or extension. Provide full file name with .xls or .xlsx extensions.")
         print("Invalid file name or extension. Provide full file name with .xls or .xlsx extensions.")
         
 def get_email(ind):
@@ -1192,10 +1193,10 @@ def upload_excel(file_name):
         file = drive_service.files().create(body=file_metadata,
                                             media_body=media,
                                             fields='id').execute()
-        logging.info("Uploaded " + file_name + "(ID: %s) to Drive" % file.get('id'))
+        log_file().info("Source Compiler.log", "Uploaded " + file_name + "(ID: %s) to Drive" % file.get('id'))
         print("Uploaded " + file_name + "(ID: %s) to Drive" % file.get('id'))
     except IOError:
-        logging.error("File not found.")
+        log_file().error("Source Compiler.log", "File not found.")
         print("File not found.")
         
 def upload_log(file_name):
@@ -1215,7 +1216,7 @@ def upload_log(file_name):
                                             media_body=media,
                                             fields='id').execute()
         
-        print("Uploaded " + file_name + "(ID: %s) to Drive" % file.get('id'))
+        print("Uploaded " + file_name + " (ID: %s) to Drive" % file.get('id'))
     except IOError:
         print("File not found.")
     

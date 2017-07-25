@@ -1,9 +1,9 @@
 from datetime import *
 from fixerio import Fixerio
 from Google_API_Manipulation import *
+from write_log import *
 import openpyxl
 import os
-import logging
 
 global rate_in
 
