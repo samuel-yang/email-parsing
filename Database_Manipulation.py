@@ -1070,8 +1070,8 @@ def file_clean(filename):
     if os.path.isfile(short + ' FORMATTED and FILTERED.xls'):
         os.remove(short + ' FORMATTED and FILTERED.xls')
 
-    log_file().info("Source Compiler.log", "All file versions of " + str(short) + "have been deleted.")
-    print "All file versions of ", short, "have been deleted."
+    log_file().info("Source Compiler.log", "All file versions of " + str(short) + " have been deleted.")
+    print "All file versions of " + str(short) + "have been deleted."
 ##print(seperator(str1))
 ##print(seperator(str2))
 
