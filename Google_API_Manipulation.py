@@ -116,7 +116,7 @@ def delete_file(file_id):
     try:
         drive_service.files().delete(fileId=file_id).execute()
         log_file().info("Source Compiler.log", "Deleted file: " + file_name)
-        print("Deleted file: ", file_name)
+        print("Deleted file: " + file_name)
     except errors.HttpError, error:
         log_file().error("Source Compiler.log", "An error occurred during delete attempt: %s" % error)
         print("An error occurred: %s" % error)    

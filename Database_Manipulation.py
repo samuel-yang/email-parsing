@@ -63,6 +63,24 @@ class bst():
             count = count + self.size(root.r_child)
             return count
 
+    def changes_to_email(self, notify_list, email, column_title):
+        book = openpyxl.Workbook()
+        sheet = book.active
+        
+        for y in range(len(column_title) - 1):
+            value = column_title[y+1]
+            sheet.cell(row=1,column=y+1).value = value
+        
+        for i in range(len(notify_list)):
+            temp = notify_list.pop(0)
+            for j in range(len(temp)):
+                if j == 0:
+                    pass
+                else:
+                    value = temp[j]
+                    sheet.cell(row=i+2,column=j).value = value
+        book.save('Changes.xlsx')
+        
 
     def database_build(self, root, edate, change_root, wholesale_root):
         filename = 'Rates for ' + str(edate)
@@ -591,30 +609,30 @@ class bst():
             #clear out previous working versions
             
             #Production version
-            book.save(filename)
-            file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            if file_id != None:
-                delete_file(file_id)
-            upload_excel(filename)
-            move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-            if temp_file_id != None:
-                delete_file(temp_file_id)        
-            upload_as_gsheet(filename, 'Rates for ' + str(edate))
-            move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-            
-            # Development version uses test folders
             #book.save(filename)
-            #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
             #if file_id != None:
                 #delete_file(file_id)
             #upload_excel(filename)
-            #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-            #temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+            #move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+            #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
             #if temp_file_id != None:
                 #delete_file(temp_file_id)        
-            #upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
-            #move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')      
+            #upload_as_gsheet(filename, 'Rates for ' + str(edate))
+            #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+            
+            # Development version uses test folders
+            book.save(filename)
+            file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            if file_id != None:
+                delete_file(file_id)
+            upload_excel(filename)
+            move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+            if temp_file_id != None:
+                delete_file(temp_file_id)        
+            upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
+            move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')      
         
         except:
             error = sys.exc_info()[0]
@@ -1071,7 +1089,7 @@ def file_clean(filename):
         os.remove(short + ' FORMATTED and FILTERED.xls')
 
     log_file().info("Source Compiler.log", "All file versions of " + str(short) + " have been deleted.")
-    print "All file versions of " + str(short) + "have been deleted."
+    print "All file versions of " + str(short) + " have been deleted."
 ##print(seperator(str1))
 ##print(seperator(str2))
 
