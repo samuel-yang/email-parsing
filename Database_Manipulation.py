@@ -357,7 +357,8 @@ class bst():
                 root.data[9] = node.data[9]
                 profit = (root.data[9] - root.data[8]) / root.data[8]
                 root.data[10] = profit
-                notify_list.append(root.data)
+                if profit < 0.2:
+                    notify_list.append(root.data)
     
     def in_order_print(self, root):
         if not root:
@@ -609,30 +610,30 @@ class bst():
             #clear out previous working versions
             
             #Production version
-            #book.save(filename)
-            #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            #if file_id != None:
-                #delete_file(file_id)
-            #upload_excel(filename)
-            #move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            #temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-            #if temp_file_id != None:
-                #delete_file(temp_file_id)        
-            #upload_as_gsheet(filename, 'Rates for ' + str(edate))
-            #move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
-            
-            # Development version uses test folders
             book.save(filename)
-            file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
             if file_id != None:
                 delete_file(file_id)
             upload_excel(filename)
-            move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
-            temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+            move_to_folder_using_name(filename, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
+            temp_file_id = find_file_id_using_parent('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
             if temp_file_id != None:
                 delete_file(temp_file_id)        
-            upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
-            move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')      
+            upload_as_gsheet(filename, 'Rates for ' + str(edate))
+            move_to_folder_using_name('Rates for ' + str(edate), '0BzlU44AWMToxNEtxSWROcjkzYVE')
+            
+            # Development version uses test folders
+            #book.save(filename)
+            #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #if file_id != None:
+                #delete_file(file_id)
+            #upload_excel(filename)
+            #move_to_folder_using_name(filename, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #temp_file_id = find_file_id_using_parent('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')
+            #if temp_file_id != None:
+                #delete_file(temp_file_id)        
+            #upload_as_gsheet(filename, 'Test Rates for ' + str(edate))
+            #move_to_folder_using_name('Test Rates for ' + str(edate), '0BzlU44AWMToxYW5iWmFWVWdzNnM')      
         
         except:
             error = sys.exc_info()[0]

@@ -237,7 +237,7 @@ def tedexis(filename, root, source, edate, upload_list, change_header):
 # """General Use Case"""
 # support for mmd, UPM, wavecell, centro, mitto, bics, openmarket, kddi, horisen, calltrade
 def general(filename, root, source, edate, upload_list, change_header):
-    #file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
+    file_id = find_file_id_using_parent(filename, '0BzlU44AWMToxZnh5ekJaVUJUc2c') # Looks in "Files" folder
     filename1 = format().excel_format(filename, source, 0, edate)
     if filename1 == -1:
         move_to_folder(file_id, '0BzlU44AWMToxeFhld1pfNWxDTWs') # Moves to "NoRates" folder
@@ -248,9 +248,9 @@ def general(filename, root, source, edate, upload_list, change_header):
     index = len(filename) - index
     ext = filename[-index:]
     newname = short + ' ' + str(edate) + ext
-    #move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
-    #rename_file(file_id, newname)
-    #file_clean(filename)
+    move_to_day_folder(file_id, edate, '0BzlU44AWMToxVU8ySkNBQzJQeFE') # Moves to date folder within "Processed" folder
+    rename_file(file_id, newname)
+    file_clean(filename)
     return ("%s has been processed, now waiting to be uploaded." % filename)
 
 # """ ------------------------------------------- MAIN CODE HERE --------------------------------------------------------------------------------------------"""
@@ -327,26 +327,26 @@ def main():
         rate_list = []
         
         #Production version
-        #while True:
-            #if temp > date.today():
-                #break
-            #file_name = "Rates for " + str(temp) + ".xls"
-            #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
-            #if file_id != None:
-                #dl_file(file_id, file_name)
-                #rate_list.append(file_name)
-            #temp = temp + timedelta(days=1)
-        
-        #Test folder
         while True:
             if temp > date.today():
                 break
             file_name = "Rates for " + str(temp) + ".xls"
-            file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxYmdRR1hHVXJiQ1E')
             if file_id != None:
                 dl_file(file_id, file_name)
                 rate_list.append(file_name)
             temp = temp + timedelta(days=1)
+        
+        #Test folder
+        #while True:
+            #if temp > date.today():
+                #break
+            #file_name = "Rates for " + str(temp) + ".xls"
+            #file_id = find_file_id_using_parent(file_name, '0BzlU44AWMToxSTNfYTFkdm5MZEE')
+            #if file_id != None:
+                #dl_file(file_id, file_name)
+                #rate_list.append(file_name)
+            #temp = temp + timedelta(days=1)
     
         # first build of database here
         bst().database_build(header, check_date, change_header, wholesale_header) 
