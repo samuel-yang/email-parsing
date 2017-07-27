@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['Source_Compiler.py', 'Database_Manipulation.py', 'Google_API_Manipulation.py', 'CurrencyConverterNew.py', 'write_log.py', 'client_secret.json'],
+a = Analysis(['Source_Compiler.py', 'Database_Manipulation.py', 'Google_API_Manipulation.py', 'CurrencyConverterNew.py', 'write_log.py', 'Email_Notifications.py', 'client_secret.json'],
              pathex=['C:\\Users\\Stephen\\Documents\\GitHub\\email-parsing'],
              binaries=[],
              datas=[],
