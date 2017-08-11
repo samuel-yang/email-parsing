@@ -479,8 +479,8 @@ def main():
             rate_list.append("Rates for " + str(check_date) + ".xls")
             
         
-        for i in range(len(rate_list)):
-            file_clean(rate_list[i])
+        # for i in range(len(rate_list)):
+        #     # file_clean(rate_list[i])
     
         file_id = find_file_id('Currency Exchange')
         if file_id != None:
