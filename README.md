@@ -3,7 +3,7 @@ Documentation for Aggregator Compiler Project
 Purpose
 Compile rates of various messaging routes from a variety of aggregators, across multiple file formats, currencies and other variables and generate a single file that easily displays all data.
 Setup
-Download the executable file, located at https://github.com/samuel-yang/email-parsing in the /dist directory.  Also required will be the client_secret.json file.
+Download the script file, located at https://github.com/samuel-yang/email-parsing in the /dist directory.  Also required will be the client_secret.json file.
 Launch the executable, which should start a browser session, requesting a log-in for the files.  Find details of the log-in information in the e-mails.  
 Shared rate sheet access can be found at https://drive.google.com/drive/folders/0BzlU44AWMToxNEtxSWROcjkzYVE?usp=sharing 
 Editable documents and changes must be uploaded as workbooks in the following folder https://drive.google.com/open?id=0BzlU44AWMToxYmdRR1hHVXJiQ1E 
@@ -16,6 +16,7 @@ Sender is referenced against a google sheet that specifies Source Name by e-mail
 Date of e-mail, source, filename are handed off for processing.
 If new date detected, rate sheet is generated for the last date and written to drive. 
 Updates to current day.  
+Rate sheets are saved locally, and uploaded to the Drive.
 
 Excel documents used for reference are in Compiled Data.  - DO NOT DELETE
 Sheets for viewing are found in Rate Sheets.  
