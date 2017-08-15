@@ -479,8 +479,17 @@ def main():
             rate_list.append("Rates for " + str(check_date) + ".xls")
             
         
-        # for i in range(len(rate_list)):
-        #     # file_clean(rate_list[i])
+        for i in range(len(rate_list)):
+            try:
+                temp = rate_list[i]
+                filename = format().excel_to_csv(temp)
+                os.remove()
+                if os.path.isfile('Data/' + filename):
+                    os.remove('Data/' + filename)
+                    shutil.move(filename, 'Data/'+filename)
+            except:
+                print("Rates sheet could not be moved")
+            # file_clean(rate_list[i])
     
         file_id = find_file_id('Currency Exchange')
         if file_id != None:

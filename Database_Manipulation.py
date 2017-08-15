@@ -1083,11 +1083,27 @@ def file_clean(filename):
     if os.path.isfile(short + '.csv'):
         os.remove(short + '.csv')
 
+    if os.path.isfile(short + '.pdf'):
+        os.remove(short + '.pdf')
+
     if os.path.isfile(short + ' FORMATTED.xls'):
         os.remove(short + ' FORMATTED.xls')
 
     if os.path.isfile(short + ' FORMATTED and FILTERED.xls'):
         os.remove(short + ' FORMATTED and FILTERED.xls')
+
+    for i in range(10):
+        renamed = short + '(' + str(i) + ')'
+        if os.path.isfile(renamed + '.xls'):
+            os.remove(renamed + '.xls')
+
+        if os.path.isfile(renamed + '.xlsx'):
+            os.remove(renamed + '.xlsx')
+
+        if os.path.isfile(renamed + '.csv'):
+            os.remove(renamed + '.csv')
+        if os.path.isfile(short + '.pdf'):
+            os.remove(short + '.pdf')
 
     log_file().info("Source Compiler.log", "All file versions of " + str(short) + " have been deleted.")
     print "All file versions of " + str(short) + " have been deleted."
