@@ -5,8 +5,8 @@ ________________
 Purpose
 Compile rates of various messaging routes from a variety of aggregators, across multiple file formats, currencies and other variables and generate a single file that easily displays all data.
 Setup
-1. Download the script file, located at https://github.com/samuel-yang/email-parsing in the /dist directory.  Also required will be the client_secret.json file.
-2. Launch the executable, which should start a browser session, requesting a log-in for the files.  Find details of the log-in information in the e-mails.  
+1. Download the script file, located at https://github.com/samuel-yang/email-parsing in the /dist directory into the desired directory.  This will be the location where local files will be saved to.  Also required will be the client_secret.json file.
+2. Launch the script, which should start a browser session, requesting a log-in for the files.  Find details of the log-in information in the e-mails.  
 3. Shared rate sheet access can be found at https://drive.google.com/drive/folders/0BzlU44AWMToxNEtxSWROcjkzYVE?usp=sharing 
 4. Editable documents and changes must be uploaded as workbooks in the following folder https://drive.google.com/open?id=0BzlU44AWMToxYmdRR1hHVXJiQ1E 
 How it works
