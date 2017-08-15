@@ -15,3 +15,16 @@ Relevant Files:
 	Email_Notifications.py(c)
 	write_log.py(c)
 
+Packages needed:
+apiclient==1.0.3
+fixerio==0.1.1
+google-api-python-client==1.6.2
+gspread==0.6.2
+httplib2==0.10.3
+oauth2client==4.1.1
+openpyxl==2.4.8
+pdfminer==20140328
+xlrd==1.0.0
+xlutils==2.0.0
+xlwt==1.2.0
+
